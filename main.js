@@ -29,12 +29,6 @@ const material = new THREE.MeshStandardMaterial({color: 0xFF6347, wireframe: tru
 const origin = new THREE.Mesh(geometry, material);
 scene.add(origin);
 
-// Chess board properties
-const tileGeometry = new THREE.BoxGeometry(1, 0.1, 1);
-const lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
-const darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
-scene.add(create_board());
-
 // Create light source
 const pointLight = new THREE.PointLight(0xffffff);
 const ambientLight = new THREE.AmbientLight(0xffffff);
@@ -44,32 +38,37 @@ scene.add(pointLight, ambientLight);
 // Create helpers
 const lightHelper = new THREE.PointLightHelper(pointLight);
 const gridHelper = new THREE.GridHelper(200,50);
-scene.add(lightHelper, gridHelper)
+scene.add(lightHelper, gridHelper);
 
 // Create controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(3.5, 0, 3.5); 
-controls.maxPolarAngle = Math.PI/3;
+// controls.maxPolarAngle = Math.PI/3;
 controls.maxDistance = 20;
 controls.minDistance = 5;
 
 
 function create_board() {
-  const board = new THREE.Group();
+  var tile = new Array(8);
+  var tileGeometry = new THREE.PlaneGeometry(1, 1);
+  var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
+  var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
+  var board = new THREE.Group();
   for(let x = 0; x < 8; x++) {
+    tile[x] = new Array(8);
     for(let z = 0; z < 8; z++) {
       if (z % 2 == false) {
-        var tile;
-        tile = new THREE.Mesh(tileGeometry, x % 2 == false? lightTile: darkTile);
+        tile[x][z] = new THREE.Mesh(tileGeometry, x % 2 == false? lightTile: darkTile);
       }
       else {
-        tile = new THREE.Mesh(tileGeometry, x % 2 == false? darkTile: lightTile);
+        tile[x][z] = new THREE.Mesh(tileGeometry, x % 2 == false? darkTile: lightTile);
       }
-      tile.position.set(x, 0, z);
-      board.add(tile);
+      tile[x][z].position.set(x, 0, z);
+      tile[x][z].rotation.x = -90*(Math.PI/180);
+      board.add(tile[x][z]);
     }
   }
-  return board;
+  scene.add(board);
 }
 
 function animate() {
@@ -84,6 +83,7 @@ function animate() {
 
 
 // Current Main
+create_board();
 const resizer = new Responsive(container, camera, renderer);
 animate();
 
