@@ -2,6 +2,7 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { Color } from 'three';
+import {Responsive} from './Responsive.js';
 
 // Scene
 const container = document.querySelector('#scene-container'); // The container that holds the scene
@@ -19,8 +20,6 @@ camera.position.set(3.5, 6, 10);
 const renderer = new THREE.WebGLRenderer(
   {antialias : true}
 );
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(container.clientWidth, container.clientHeight);
 container.append(renderer.domElement);
 
 
@@ -76,11 +75,15 @@ function create_board() {
 function animate() {
   requestAnimationFrame(animate);
   
-  renderer.render(scene, camera)
+  // Resizer.onResize();
+  renderer.render(scene, camera);
 
   // Update controls every frame
   controls.update();
 }
 
+
+// Current Main
+const resizer = new Responsive(container, camera, renderer);
 animate();
 
