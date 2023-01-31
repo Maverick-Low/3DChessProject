@@ -3,3 +3,9 @@ canvas {
   top: 0;
   left: 0;
 }
+
+#scene-container {
+	width: 100vw;
+	height: 100vh;
+	background: red;
+}

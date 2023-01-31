@@ -1,20 +1,34 @@
 import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import { Color } from 'three';
 
-// Initialising screen and scene
-const aspectRatio = window.innerWidth/window.innerHeight;
+// Scene
+const container = document.querySelector('#scene-container'); // The container that holds the scene
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, aspectRatio , 0.1, 1000);
-const renderer = new THREE.WebGLRenderer(
-  {canvas: document.querySelector('#bg'),}
-);
+scene.background = new Color('grey');
 // const background = new THREE.TextureLoader().load('textures/rubber-fig-gray-room.jpg');
 // scene.background = background;
+
+// Camera
+const aspectRatio = container.clientWidth / container.clientHeight;
+const camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 1000);
+camera.position.set(3.5, 6, 10);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer(
+  {antialias : true}
+);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(30);
-renderer.render(scene, camera);
+renderer.setSize(container.clientWidth, container.clientHeight);
+container.append(renderer.domElement);
+
+
+// Creating an object
+const geometry = new THREE.BoxGeometry(0.1, 100, 0.1)
+const material = new THREE.MeshStandardMaterial({color: 0xFF6347, wireframe: true});
+const origin = new THREE.Mesh(geometry, material);
+scene.add(origin);
 
 // Chess board properties
 const tileGeometry = new THREE.BoxGeometry(1, 0.1, 1);
@@ -35,6 +49,11 @@ scene.add(lightHelper, gridHelper)
 
 // Create controls
 const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(3.5, 0, 3.5); 
+controls.maxPolarAngle = Math.PI/3;
+controls.maxDistance = 20;
+controls.minDistance = 5;
+
 
 function create_board() {
   const board = new THREE.Group();
@@ -47,7 +66,7 @@ function create_board() {
       else {
         tile = new THREE.Mesh(tileGeometry, x % 2 == false? darkTile: lightTile);
       }
-      tile.position.set(x-3.5, 0, z-3.5);
+      tile.position.set(x, 0, z);
       board.add(tile);
     }
   }
