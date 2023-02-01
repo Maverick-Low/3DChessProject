@@ -3,50 +3,55 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { Color } from 'three';
 import {Responsive} from './Responsive.js';
+import { fill_board } from './pieces';
 
-// Scene
-const container = document.querySelector('#scene-container'); // The container that holds the scene
-const scene = new THREE.Scene();
-scene.background = new Color('grey');
-// const background = new THREE.TextureLoader().load('textures/rubber-fig-gray-room.jpg');
-// scene.background = background;
+var scene, container, camera, renderer;
 
-// Camera
-const aspectRatio = container.clientWidth / container.clientHeight;
-const camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 1000);
-camera.position.set(3.5, 6, 10);
+function init() {
+  // Scene
+  container = document.querySelector('#scene-container'); // The container that holds the scene
+  scene = new THREE.Scene();
+  scene.background = new Color('grey');
+  // const background = new THREE.TextureLoader().load('textures/rubber-fig-gray-room.jpg');
+  // scene.background = background;
 
-// Renderer
-const renderer = new THREE.WebGLRenderer(
-  {antialias : true}
-);
-container.append(renderer.domElement);
+  // Camera
+  const aspectRatio = container.clientWidth / container.clientHeight;
+  camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 50);
+  camera.position.set(3.5, 6, 10);
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer(
+    {antialias : true}
+  );
+  container.append(renderer.domElement);
 
 
-// Creating an object
-const geometry = new THREE.BoxGeometry(0.1, 100, 0.1)
-const material = new THREE.MeshStandardMaterial({color: 0xFF6347, wireframe: true});
-const origin = new THREE.Mesh(geometry, material);
-scene.add(origin);
+  // Creating an object
+  const geometry = new THREE.BoxGeometry(0.1, 100, 0.1)
+  const material = new THREE.MeshStandardMaterial({color: 0xFF6347, wireframe: true});
+  const origin = new THREE.Mesh(geometry, material);
+  origin.position.set(0,0,0);
+  scene.add(origin);
 
-// Create light source
-const pointLight = new THREE.PointLight(0xffffff);
-const ambientLight = new THREE.AmbientLight(0xffffff);
-pointLight.position.set(10,10,5);
-scene.add(pointLight, ambientLight);
+  // Create light source
+  const pointLight = new THREE.PointLight(0xffffff);
+  const ambientLight = new THREE.AmbientLight(0xffffff);
+  pointLight.position.set(10,10,5);
+  scene.add(pointLight, ambientLight);
 
-// Create helpers
-const lightHelper = new THREE.PointLightHelper(pointLight);
-const gridHelper = new THREE.GridHelper(200,50);
-scene.add(lightHelper, gridHelper);
+  // Create helpers
+  const lightHelper = new THREE.PointLightHelper(pointLight);
+  const gridHelper = new THREE.GridHelper(200,50);
+  scene.add(lightHelper, gridHelper);
 
-// Create controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(3.5, 0, 3.5); 
-// controls.maxPolarAngle = Math.PI/3;
-controls.maxDistance = 20;
-controls.minDistance = 5;
-
+  // Create controls
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(3.5, 0, 3.5); 
+  // controls.maxPolarAngle = Math.PI/3;
+  controls.maxDistance = 20;
+  controls.minDistance = 5;
+}
 
 function create_board() {
   var tile = new Array(8);
@@ -81,8 +86,18 @@ function animate() {
   controls.update();
 }
 
-
 // Current Main
+init();
+// Adding pawns
+const {bPawn, wPawn} = await fill_board();
+
+bPawn.scale.set(0.4,0.4,0.4);
+bPawn.position.set(0,0,0);
+
+wPawn.position.set(1,0,2);
+wPawn.scale.set(0.3,0.3,0.3);
+scene.add(bPawn, wPawn);
+
 create_board();
 const resizer = new Responsive(container, camera, renderer);
 animate();
