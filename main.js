@@ -2,7 +2,7 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { Color } from 'three';
-import { fill_board } from './pieces';
+import { load_pieces } from './pieces';
 
 var scene, camera, renderer, controls, container;
  
@@ -38,9 +38,15 @@ function init() {
     // Create helpers
     const gridHelper = new THREE.GridHelper(200,50);
     scene.add(gridHelper);
+    
+    // Add lights
+    const light = new THREE.PointLight( 0xffffff, 2, 200 );
+    light.position.set(3.5, 10, 3.5);
+    scene.add(light);
 
     // Add objects into scene
     create_board();
+    load_pieces(scene);
 
     window.requestAnimationFrame(animate);
 }
