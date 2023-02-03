@@ -7,17 +7,28 @@ var ChessEngine = function () {
         bP: 7, bN: 8, bB: 9, bR: 10, bQ: 11, bK: 12
     }; 
 
+    // var DEFAULT_BOARD = [
+    //     'bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR',
+    //     'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP',
+    //      0,    0,    0,    0,    0,    0,    0,    0,
+    //      0,    0,    0,    0,    0,    0,    0,    0,
+    //      0,    0,    0,    0,    0,    0,    0,    0,
+    //      0,    0,    0,    0,    0,    0,    0,    0,
+    //     'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP',
+    //     'wR', 'wN', 'ww', 'wQ', 'wK', 'ww', 'wN', 'wR',
+    // ];
+
     var DEFAULT_BOARD = [
-        'bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR',
-        'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP',
-         0,    0,    0,    0,    0,    0,    0,    0,
-         0,    0,    0,    0,    0,    0,    0,    0,
-         0,    0,    0,    0,    0,    0,    0,    0,
-         0,    0,    0,    0,    0,    0,    0,    0,
-         0,    0,    0,    0,    0,    0,    0,    0,
-        'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP',
-        'wR', 'wN', 'ww', 'wQ', 'wK', 'ww', 'wN', 'wR',
-    ];
+        10,    8,    9,    11,    12,    9,    8,    10,
+        7,    7,    7,    7,    7,    7,    7,    7,
+        0,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,
+        0,    0,    0,    0,    0,    0,    0,    0,
+        1,    1,    1,    1,    1,    1,    1,    1,
+        4,    2,    3,    5,    6,    3,    2,    4,
+    ]
+        
 
     var position;
 
@@ -29,7 +40,7 @@ var ChessEngine = function () {
     
     return {
         board: DEFAULT_BOARD,
-        pieces: PIECES,
+        isPiece: PIECES,
         get_piece: get_piece,
     }
 }

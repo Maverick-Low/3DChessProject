@@ -2,12 +2,15 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { Color } from 'three';
-import { load_pieces } from './pieces';
+import { fill_board } from './pieces';
 
-var scene, camera, renderer, controls, container;
- 
+var scene, camera, renderer, controls, container, Chess;
+var fileName = '/assets/models/2Dplus3DChessSet.glb';
+
 function init() {
     // Scene
+    Chess = new ChessEngine();
+
     container = document.querySelector('#scene-container'); // The container that holds the scene
     scene = new THREE.Scene();
     scene.background = new Color('grey');
@@ -46,7 +49,8 @@ function init() {
 
     // Add objects into scene
     create_board();
-    load_pieces(scene);
+    // load_pieces(scene, Chess, fileName);
+    fill_board(Chess, scene, fileName);
 
     window.requestAnimationFrame(animate);
 }
@@ -87,6 +91,7 @@ function resize_window(container, camera, renderer) {
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
 }
+
   
 // Current Main
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
