@@ -28,11 +28,8 @@ var ChessEngine = function () {
         1,    1,    1,    1,    1,    1,    1,    1,
         4,    2,    3,    5,    6,    3,    2,    4,
     ]
-        
 
-    var position;
-
-    function get_piece(square) {
+    function get_piece(square) { // Finds the piece at the given square
         var piece = DEFAULT_BOARD[square];
         console.log(piece);
         return piece;
