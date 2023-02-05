@@ -106,7 +106,14 @@ function resize_window(container, camera, renderer) {
     renderer.setPixelRatio(window.devicePixelRatio);
 }
 
-function customise_piece(position, piece, material) {
+function customise_piece(position, piece) {
+    let material;
+    if(piece.name.includes('black')) {
+        material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+    }
+    else {
+        material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+    }
     piece.position.set(position.x, position.y, position.z);
     piece.scale.set(0.3, 0.3, 0.3);
     piece.children[0].material = material;
@@ -116,7 +123,6 @@ function customise_piece(position, piece, material) {
 function fill_board(mesh) {
     
     let piece;
-    let material;
     for(let i = 0; i < 64; i++){
         const tilePos = find_tile_position(i); // The position of each piece on the board
         switch(Chess.board[i]){
@@ -124,79 +130,65 @@ function fill_board(mesh) {
             // Black pieces
             case Chess.isPiece.bR:
                 piece = mesh.children.find((child) => child.name === 'blackRook').clone(true);
-                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
 
             case Chess.isPiece.bP:
                 piece = mesh.children.find((child) => child.name === 'blackPawn').clone(true);
-                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
 
             case Chess.isPiece.bN:
                 piece = mesh.children.find((child) => child.name === 'blackKnight').clone(true);
-                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;  
             
             case Chess.isPiece.bB:
                 piece = mesh.children.find((child) => child.name === 'blackBishop').clone(true);
-                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
                 
             case Chess.isPiece.bQ:
                 piece = mesh.children.find((child) => child.name === 'blackQueen');
-                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
 
             case Chess.isPiece.bK:
                 piece = mesh.children.find((child) => child.name === 'blackKing');
-                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
 
             // White pieces
             case Chess.isPiece.wP:
                 piece = mesh.children.find((child) => child.name === 'whitePawn').clone();
-                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
 
             case Chess.isPiece.wN:
                 piece = mesh.children.find((child) => child.name === 'whiteKnight').clone();
-                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;  
             
             case Chess.isPiece.wB:
                 piece = mesh.children.find((child) => child.name === 'whiteBishop').clone();
-                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
 
             case Chess.isPiece.wR:
                 piece = mesh.children.find((child) => child.name === 'whiteRook').clone();
-                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
                 
             case Chess.isPiece.wQ:
                 piece = mesh.children.find((child) => child.name === 'whiteQueen');
-                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
                 break;
 
             case Chess.isPiece.wK:
                 piece = mesh.children.find((child) => child.name === 'whiteKing');
-                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                customise_piece(tilePos, piece, material);
+                customise_piece(tilePos, piece);
             break;
         }
     }
-    const myNewMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
-
     // scene.traverse((mesh) => {
     //     if(mesh.isGroup) {
     //         console.log(mesh);
@@ -225,8 +217,8 @@ function highlight_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
     for(let i = 0; i < intersects.length; i++) {
-        if(intersects[i].object.isGroup) {
-            console.log( intersects[i].object);
+        if(intersects[i].object.isMesh) {
+            // console.log( intersects[i].object);
             intersects[i].object.material.transparent = true;
             intersects[i].object.material.opacity = 0.1;
         }
