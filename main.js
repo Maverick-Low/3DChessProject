@@ -1,10 +1,10 @@
 import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import { Color } from 'three';
+import { Color, Group } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-var scene, camera, renderer, controls, container, Chess, board;
+var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, chessMesh;
 var fileName = '/assets/models/2Dplus3DChessSet.glb';
 
 function init() {
@@ -18,13 +18,17 @@ function init() {
     // Camera
     const aspectRatio = container.clientWidth / container.clientHeight;
     camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 50);
-    camera.position.set(3.5, 6, 10);
+    camera.position.set(3.5, 10, 3.5);
 
     // Renderer
     renderer = new THREE.WebGLRenderer(
         {antialias : true}
     );
     container.append(renderer.domElement);
+    
+    // Raycasting
+    mouse = new THREE.Vector2();
+    raycaster = new THREE.Raycaster();
 
     // Create controls
     controls = new OrbitControls(camera, renderer.domElement);
@@ -52,8 +56,8 @@ function init() {
 
     const loader = new GLTFLoader();
     loader.load(fileName, function ( gltf ) {
-        const mesh = gltf.scene;
-        fill_board(mesh);
+        chessMesh = gltf.scene;
+        fill_board(chessMesh);
     });
 
     window.requestAnimationFrame(animate);
@@ -89,6 +93,7 @@ function create_board() {
 
 function animate() {
     controls.update(); 
+    highlight_piece();
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
 }
@@ -101,101 +106,102 @@ function resize_window(container, camera, renderer) {
     renderer.setPixelRatio(window.devicePixelRatio);
 }
 
+function customise_piece(position, piece, material) {
+    piece.position.set(position.x, position.y, position.z);
+    piece.scale.set(0.3, 0.3, 0.3);
+    piece.children[0].material = material;
+    piece.children[1].material = material;
+    scene.add(piece);
+}
 function fill_board(mesh) {
     
     let piece;
+    let material;
     for(let i = 0; i < 64; i++){
         const tilePos = find_tile_position(i); // The position of each piece on the board
         switch(Chess.board[i]){
 
             // Black pieces
             case Chess.isPiece.bR:
-                piece = mesh.children.find((child) => child.name === 'blackRook').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                piece = mesh.children.find((child) => child.name === 'blackRook').clone(true);
+                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                customise_piece(tilePos, piece, material);
                 break;
 
             case Chess.isPiece.bP:
-                piece = mesh.children.find((child) => child.name === 'blackPawn').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                piece = mesh.children.find((child) => child.name === 'blackPawn').clone(true);
+                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                customise_piece(tilePos, piece, material);
                 break;
 
             case Chess.isPiece.bN:
-                piece = mesh.children.find((child) => child.name === 'blackKnight').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                piece = mesh.children.find((child) => child.name === 'blackKnight').clone(true);
+                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                customise_piece(tilePos, piece, material);
                 break;  
             
             case Chess.isPiece.bB:
-                piece = mesh.children.find((child) => child.name === 'blackBishop').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
-
+                piece = mesh.children.find((child) => child.name === 'blackBishop').clone(true);
+                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                customise_piece(tilePos, piece, material);
                 break;
                 
             case Chess.isPiece.bQ:
                 piece = mesh.children.find((child) => child.name === 'blackQueen');
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                customise_piece(tilePos, piece, material);
                 break;
 
             case Chess.isPiece.bK:
                 piece = mesh.children.find((child) => child.name === 'blackKing');
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
-            break;
+                material = new THREE.MeshStandardMaterial({ color: 0x222222 });
+                customise_piece(tilePos, piece, material);
 
             // White pieces
             case Chess.isPiece.wP:
                 piece = mesh.children.find((child) => child.name === 'whitePawn').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                customise_piece(tilePos, piece, material);
                 break;
 
             case Chess.isPiece.wN:
                 piece = mesh.children.find((child) => child.name === 'whiteKnight').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                customise_piece(tilePos, piece, material);
                 break;  
             
             case Chess.isPiece.wB:
                 piece = mesh.children.find((child) => child.name === 'whiteBishop').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                customise_piece(tilePos, piece, material);
                 break;
 
             case Chess.isPiece.wR:
                 piece = mesh.children.find((child) => child.name === 'whiteRook').clone();
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                customise_piece(tilePos, piece, material);
                 break;
                 
             case Chess.isPiece.wQ:
                 piece = mesh.children.find((child) => child.name === 'whiteQueen');
-                piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-                piece.scale.set(0.3, 0.3, 0.3);
-                scene.add(piece);
+                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                customise_piece(tilePos, piece, material);
                 break;
 
             case Chess.isPiece.wK:
-            piece = mesh.children.find((child) => child.name === 'whiteKing');
-            piece.position.set(tilePos.x, tilePos.y, tilePos.z);
-            piece.scale.set(0.3, 0.3, 0.3);
-            scene.add(piece);
+                piece = mesh.children.find((child) => child.name === 'whiteKing');
+                material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                customise_piece(tilePos, piece, material);
             break;
         }
     }
+    const myNewMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+
+    // scene.traverse((mesh) => {
+    //     if(mesh.isGroup) {
+    //         console.log(mesh);
+    //     }
+    // })
 }
 
 function find_tile_position(tile) {
@@ -205,6 +211,32 @@ function find_tile_position(tile) {
     }
     return null; 
 }
+
+// Function taken from https://threejs.org/docs/#api/en/core/Raycaster
+function move_mouse( event ) {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    mouse.x = ( event.clientX / container.clientWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
+    console.log(mouse.x, mouse.y);
+}
+
+function highlight_piece(){
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(scene.children);
+    for(let i = 0; i < intersects.length; i++) {
+        if(intersects[i].object.isGroup) {
+            console.log( intersects[i].object);
+            intersects[i].object.material.transparent = true;
+            intersects[i].object.material.opacity = 0.1;
+        }
+        
+    }
+}
+
+
+
 // Current Main
+// window.addEventListener('mousemove', move_mouse, false);
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
 window.onload = init();
