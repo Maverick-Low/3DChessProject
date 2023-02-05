@@ -84,6 +84,7 @@ function create_board() {
             squareNumber++;
             tile.position.set(z, 0, x);
             tile.rotation.x = -90*(Math.PI/180);
+            tile.name = 'tile';
             board.add(tile);
         }
         
@@ -120,6 +121,7 @@ function customise_piece(position, piece) {
     piece.children[1].material = material;
     scene.add(piece);
 }
+
 function fill_board(mesh) {
     
     let piece;
@@ -210,19 +212,48 @@ function move_mouse( event ) {
     // (-1 to +1) for both components
     mouse.x = ( event.clientX / container.clientWidth ) * 2 - 1;
     mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
-    console.log(mouse.x, mouse.y);
 }
 
 function highlight_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
     for(let i = 0; i < intersects.length; i++) {
-        if(intersects[i].object.isMesh) {
-            // console.log( intersects[i].object);
-            intersects[i].object.material.transparent = true;
-            intersects[i].object.material.opacity = 0.1;
+        const objectGroup = intersects[i].object.parent;
+
+        for (let j = 0; j < objectGroup.children.length; j++) {
+            if(!objectGroup.children[j].name.includes('tile')){
+                // console.log(objectGroup);
+                objectGroup.children[j].material = new THREE.MeshStandardMaterial({ color: 0x39d74e });;
+
+                // const position = intersects[i].object.position; 
+                // intersects[i].object.position.set(position.x, 2, position.z);
+            }  
+            
         }
         
+
+        // for(let j = 0; j < objectGroup.children.length; j++) {
+        //     if(objectGroup.children.find((child) => child.name === 'board')) {
+        //         console.log('a');
+        //     }
+            
+        // }
+        // if(objectGroup.name.includes('tile')){
+        //     const position = intersects[i].object.position; 
+        //     objectGroup.position.set(position.x, 2, position.z);
+        // }
+        // for(let j = 0; j < objectGroup.children.length; j++) {
+
+        //     if(!objectGroup.children.name.includes('tile')){
+        //         objectGroup.children[j].position.set(3.5, 2, 3.5);
+        //     } 
+        // }
+        // if(!intersects[i].object.name.includes('tile')){
+        //     const position = intersects[i].object.position; 
+        //     intersects[i].object.position.set(position.x, 2, position.z);
+        // }    
+         
+
     }
 }
 
@@ -231,4 +262,5 @@ function highlight_piece(){
 // Current Main
 // window.addEventListener('mousemove', move_mouse, false);
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
+window.addEventListener( 'mousemove', move_mouse, false );
 window.onload = init();
