@@ -18,7 +18,7 @@ function init() {
     // Camera
     const aspectRatio = container.clientWidth / container.clientHeight;
     camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 50);
-    camera.position.set(3.5, 10, 3.5);
+    camera.position.set(3.5, 6, 10);
 
     // Renderer
     renderer = new THREE.WebGLRenderer(
@@ -94,7 +94,8 @@ function create_board() {
 
 function animate() {
     controls.update(); 
-    highlight_piece();
+    deselect_piece();
+    select_piece();
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
 }
@@ -110,15 +111,15 @@ function resize_window(container, camera, renderer) {
 function customise_piece(position, piece) {
     let material;
     if(piece.name.includes('black')) {
-        material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+        material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });;
     }
     else {
-        material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+        material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });;
     }
-    piece.position.set(position.x, position.y, position.z);
-    piece.scale.set(0.3, 0.3, 0.3);
     piece.children[0].material = material;
     piece.children[1].material = material;
+    piece.position.set(position.x, position.y, position.z);
+    piece.scale.set(0.3, 0.3, 0.3);
     scene.add(piece);
 }
 
@@ -214,46 +215,46 @@ function move_mouse( event ) {
     mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
 }
 
-function highlight_piece(){
+function select_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
+    let lengthToPiece;
+
     for(let i = 0; i < intersects.length; i++) {
-        const objectGroup = intersects[i].object.parent;
+        if (intersects[i].object.parent.name.includes('white') || intersects[i].object.parent.name.includes('black')) {
+            lengthToPiece = i;
+            break;
+        }
+        else {
+            lengthToPiece = 0;
+        }
+    }
+    if( intersects.length != 0) {
+        const objectGroup = intersects[lengthToPiece].object.parent;
+        // const objectGroup = intersects[i].object.parent.name.includes('black' || 'white') ? intersects[0].object.parent: intersects[i].object.parent;
+    
+        for (let j = 0; j < objectGroup.children.length; j++) {
+            if(!objectGroup.children[j].name.includes('tile')) {
+                const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+                const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                objectGroup.children[j].material = objectGroup.children[j].name.includes('black') ? darkMaterial: lightMaterial;
+                objectGroup.children[j].material.transparent = true;
+                objectGroup.children[j].material.opacity = 0.5;
+            }
+        }
+    }
+   
+}
+
+function deselect_piece() {
+    for (let i = 0; i < scene.children.length; i++) {
+        const objectGroup = scene.children[i];
 
         for (let j = 0; j < objectGroup.children.length; j++) {
-            if(!objectGroup.children[j].name.includes('tile')){
-                // console.log(objectGroup);
-                objectGroup.children[j].material = new THREE.MeshStandardMaterial({ color: 0x39d74e });;
-
-                // const position = intersects[i].object.position; 
-                // intersects[i].object.position.set(position.x, 2, position.z);
+            if(objectGroup.children[j].material) {
+                objectGroup.children[j].material.opacity = 1.0;
             }  
-            
         }
-        
-
-        // for(let j = 0; j < objectGroup.children.length; j++) {
-        //     if(objectGroup.children.find((child) => child.name === 'board')) {
-        //         console.log('a');
-        //     }
-            
-        // }
-        // if(objectGroup.name.includes('tile')){
-        //     const position = intersects[i].object.position; 
-        //     objectGroup.position.set(position.x, 2, position.z);
-        // }
-        // for(let j = 0; j < objectGroup.children.length; j++) {
-
-        //     if(!objectGroup.children.name.includes('tile')){
-        //         objectGroup.children[j].position.set(3.5, 2, 3.5);
-        //     } 
-        // }
-        // if(!intersects[i].object.name.includes('tile')){
-        //     const position = intersects[i].object.position; 
-        //     intersects[i].object.position.set(position.x, 2, position.z);
-        // }    
-         
-
     }
 }
 
