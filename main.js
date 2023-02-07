@@ -115,8 +115,10 @@ function customise_piece(position, piece, currentTile) {
         material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });;
     }
     piece.userData.currentSquare = currentTile;
+
     piece.children[0].material = material;
     piece.children[1].material = material;
+    
     piece.position.set(position.x, position.y, position.z);
     piece.scale.set(0.3, 0.3, 0.3);
     scene.add(piece);
@@ -143,7 +145,6 @@ async function fill_board() {
             case Chess.isPiece.bP:
                 piece = mesh.children.find((child) => child.name === 'blackPawn').clone(true);
                 customise_piece(tilePos, piece, i);
-                pieceClones[i] = piece;
                 break;
 
             case Chess.isPiece.bN:
@@ -164,6 +165,7 @@ async function fill_board() {
             case Chess.isPiece.bK:
                 piece = mesh.children.find((child) => child.name === 'blackKing');
                 customise_piece(tilePos, piece, i);
+                break;
 
             // White pieces
             case Chess.isPiece.wP:
@@ -284,11 +286,21 @@ function click_mouse(event) {
             const targetSquare = intersects[0].object.userData.squareNumber;
             const selectedObject = scene.children.find((child) => child.userData.currentSquare == selectedPiece);
             const targetPosition = find_tile_position(targetSquare);
-
+            const oldPos = selectedObject.userData.currentSquare;
+      
             selectedObject.position.set(targetPosition.x, selectedObject.position.y, targetPosition.z);
-            selectedObject.currentSquare = targetSquare;
+            selectedObject.userData.currentSquare = targetSquare;
             selectedPiece = null;
+
+            Chess.update_board(board, oldPos, targetSquare);
         }
+    }
+}
+
+function print_board(event) {
+    var key = event.which || event.keyCode
+    if (key === 32) {
+        console.log(Chess.board);
     }
 }
 
@@ -297,5 +309,6 @@ function click_mouse(event) {
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
 window.addEventListener( 'click', click_mouse);
 window.addEventListener( 'mousemove', move_mouse, false );
+window.addEventListener('keydown', print_board);
 
 window.onload = init();

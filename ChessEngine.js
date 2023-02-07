@@ -29,16 +29,18 @@ var ChessEngine = function () {
         4,    2,    3,    5,    6,    3,    2,    4,
     ]
 
-    function get_piece(square) { // Finds the piece at the given square
-        var piece = DEFAULT_BOARD[square];
-        console.log(piece);
-        return piece;
+    function update_board(board, oldPos, newPos) {
+        board = DEFAULT_BOARD;
+        const pieceMoved = board[oldPos]; // board[oldPos] = 1-12. E.g. board[0] = 10 = White Rook
+
+        board[oldPos] = 0; // Piece has left this position so it is empty
+        board[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in board[newPos]
     }
     
     return {
         board: DEFAULT_BOARD,
         isPiece: PIECES,
-        get_piece: get_piece,
+        update_board: update_board
     }
 }
 
