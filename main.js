@@ -3,11 +3,12 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { Color, Group } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
-var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, chessMesh;
+var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selectedPiece = null, dragControls;
+var pieceClones = new Array();
+var lengthToPiece;
 var fileName = '/assets/models/2Dplus3DChessSet.glb';
 
-function init() {
+async function init() {
     // Scene
     Chess = new ChessEngine();
 
@@ -53,12 +54,7 @@ function init() {
 
     // Add objects into scene
     create_board();
-
-    const loader = new GLTFLoader();
-    loader.load(fileName, function ( gltf ) {
-        chessMesh = gltf.scene;
-        fill_board(chessMesh);
-    });
+    fill_board();
 
     window.requestAnimationFrame(animate);
 }
@@ -108,14 +104,17 @@ function resize_window(container, camera, renderer) {
     renderer.setPixelRatio(window.devicePixelRatio);
 }
 
-function customise_piece(position, piece) {
+// --------------------------------------------- Functions for loading pieces onto the board  ----------------------------------------------------- //
+function customise_piece(position, piece, currentTile) {
     let material;
+
     if(piece.name.includes('black')) {
         material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });;
     }
     else {
         material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });;
     }
+    piece.userData.currentSquare = currentTile;
     piece.children[0].material = material;
     piece.children[1].material = material;
     piece.position.set(position.x, position.y, position.z);
@@ -123,9 +122,13 @@ function customise_piece(position, piece) {
     scene.add(piece);
 }
 
-function fill_board(mesh) {
+async function fill_board() {
     
+    const loader = new GLTFLoader();
+    const chessMesh = await loader.loadAsync(fileName);
+    const mesh = chessMesh.scene;
     let piece;
+
     for(let i = 0; i < 64; i++){
         const tilePos = find_tile_position(i); // The position of each piece on the board
         switch(Chess.board[i]){
@@ -133,62 +136,64 @@ function fill_board(mesh) {
             // Black pieces
             case Chess.isPiece.bR:
                 piece = mesh.children.find((child) => child.name === 'blackRook').clone(true);
-                customise_piece(tilePos, piece);
+                pieceClones[i] = piece;
+                customise_piece(tilePos, piece, i);
                 break;
 
             case Chess.isPiece.bP:
                 piece = mesh.children.find((child) => child.name === 'blackPawn').clone(true);
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
+                pieceClones[i] = piece;
                 break;
 
             case Chess.isPiece.bN:
                 piece = mesh.children.find((child) => child.name === 'blackKnight').clone(true);
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;  
             
             case Chess.isPiece.bB:
                 piece = mesh.children.find((child) => child.name === 'blackBishop').clone(true);
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;
                 
             case Chess.isPiece.bQ:
                 piece = mesh.children.find((child) => child.name === 'blackQueen');
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;
 
             case Chess.isPiece.bK:
                 piece = mesh.children.find((child) => child.name === 'blackKing');
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
 
             // White pieces
             case Chess.isPiece.wP:
                 piece = mesh.children.find((child) => child.name === 'whitePawn').clone();
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;
 
             case Chess.isPiece.wN:
                 piece = mesh.children.find((child) => child.name === 'whiteKnight').clone();
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;  
             
             case Chess.isPiece.wB:
                 piece = mesh.children.find((child) => child.name === 'whiteBishop').clone();
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;
 
             case Chess.isPiece.wR:
                 piece = mesh.children.find((child) => child.name === 'whiteRook').clone();
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;
                 
             case Chess.isPiece.wQ:
                 piece = mesh.children.find((child) => child.name === 'whiteQueen');
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
                 break;
 
             case Chess.isPiece.wK:
                 piece = mesh.children.find((child) => child.name === 'whiteKing');
-                customise_piece(tilePos, piece);
+                customise_piece(tilePos, piece, i);
             break;
         }
     }
@@ -199,6 +204,7 @@ function fill_board(mesh) {
     // })
 }
 
+// Function to a position on the board (1-64)
 function find_tile_position(tile) {
     const found = board.children.find((child) => child.userData.squareNumber == tile)
     if (found) {
@@ -207,6 +213,7 @@ function find_tile_position(tile) {
     return null; 
 }
 
+// --------------------------------------------- Functions for selecting pieces ----------------------------------------------------- //
 // Function taken from https://threejs.org/docs/#api/en/core/Raycaster
 function move_mouse( event ) {
     // calculate mouse position in normalized device coordinates
@@ -215,10 +222,10 @@ function move_mouse( event ) {
     mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
 }
 
+// Hover over pieces highlights them
 function select_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
-    let lengthToPiece;
 
     for(let i = 0; i < intersects.length; i++) {
         if (intersects[i].object.parent.name.includes('white') || intersects[i].object.parent.name.includes('black')) {
@@ -231,7 +238,6 @@ function select_piece(){
     }
     if( intersects.length != 0) {
         const objectGroup = intersects[lengthToPiece].object.parent;
-        // const objectGroup = intersects[i].object.parent.name.includes('black' || 'white') ? intersects[0].object.parent: intersects[i].object.parent;
     
         for (let j = 0; j < objectGroup.children.length; j++) {
             if(!objectGroup.children[j].name.includes('tile')) {
@@ -246,22 +252,50 @@ function select_piece(){
    
 }
 
+// Once mouse cursor is no longer hovering on a piece, set it back to its original colours
 function deselect_piece() {
     for (let i = 0; i < scene.children.length; i++) {
         const objectGroup = scene.children[i];
-
         for (let j = 0; j < objectGroup.children.length; j++) {
             if(objectGroup.children[j].material) {
-                objectGroup.children[j].material.opacity = 1.0;
+                objectGroup.children[j].material.opacity = objectGroup.userData.currentSquare == selectedPiece ? 0.5 : 1.0;
             }  
         }
     }
 }
 
+// Function to: on first click: select a piece | on second click: Move piece to location
+function click_mouse(event) {
+    raycaster.setFromCamera(mouse, camera);
+    let intersects = raycaster.intersectObjects(scene.children);
+
+    // Get the selected piece
+    if(intersects.length > 0 && !selectedPiece) {
+        selectedPiece = intersects[lengthToPiece].object.parent.userData.currentSquare;
+        return;
+    }
+
+    // Move the piece onto the target location on the board
+    if(selectedPiece) {
+        raycaster.setFromCamera(mouse, camera);
+        intersects = raycaster.intersectObjects(board.children);
+
+        if(intersects.length > 0) {
+            const targetSquare = intersects[0].object.userData.squareNumber;
+            const selectedObject = scene.children.find((child) => child.userData.currentSquare == selectedPiece);
+            const targetPosition = find_tile_position(targetSquare);
+
+            selectedObject.position.set(targetPosition.x, selectedObject.position.y, targetPosition.z);
+            selectedObject.currentSquare = targetSquare;
+            selectedPiece = null;
+        }
+    }
+}
 
 
 // Current Main
-// window.addEventListener('mousemove', move_mouse, false);
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
+window.addEventListener( 'click', click_mouse);
 window.addEventListener( 'mousemove', move_mouse, false );
+
 window.onload = init();
