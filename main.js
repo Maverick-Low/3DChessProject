@@ -1,10 +1,8 @@
 import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import { Color, Group } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selectedPiece = null, dragControls;
-var pieceClones = new Array();
+var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selectedPiece = null;
 var lengthToPiece;
 var fileName = '/assets/models/2Dplus3DChessSet.glb';
 
@@ -14,7 +12,7 @@ async function init() {
 
     container = document.querySelector('#scene-container'); // The container that holds the scene
     scene = new THREE.Scene();
-    scene.background = new Color('grey');
+    scene.background = new THREE.Color('grey');
 
     // Camera
     const aspectRatio = container.clientWidth / container.clientHeight;
@@ -64,7 +62,7 @@ function create_board() {
     const lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
     const darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
     let tile;
-    let squareNumber = 0;
+    let squareNumber = 1;
     board = new THREE.Group();
 
     for(let x = 0; x < 8; x++) {
@@ -76,7 +74,7 @@ function create_board() {
             else {
                 tile = new THREE.Mesh(tileGeometry, x % 2 == false? darkTile: lightTile);
             }
-            tile.userData.squareNumber = squareNumber; // Each tile on the board has a square numer ranging from 1-64
+            tile.userData.squareNumber = squareNumber; // Each tile on the board has a square numer ranging from 0-63
             squareNumber++;
             tile.position.set(z, 0, x);
             tile.rotation.x = -90*(Math.PI/180);
@@ -118,7 +116,7 @@ function customise_piece(position, piece, currentTile) {
 
     piece.children[0].material = material;
     piece.children[1].material = material;
-    
+
     piece.position.set(position.x, position.y, position.z);
     piece.scale.set(0.3, 0.3, 0.3);
     scene.add(piece);
@@ -131,14 +129,13 @@ async function fill_board() {
     const mesh = chessMesh.scene;
     let piece;
 
-    for(let i = 0; i < 64; i++){
+    for(let i = 1; i < 65; i++){
         const tilePos = find_tile_position(i); // The position of each piece on the board
-        switch(Chess.board[i]){
+        switch(Chess.board[i-1]){
 
             // Black pieces
             case Chess.isPiece.bR:
                 piece = mesh.children.find((child) => child.name === 'blackRook').clone(true);
-                pieceClones[i] = piece;
                 customise_piece(tilePos, piece, i);
                 break;
 
@@ -196,7 +193,7 @@ async function fill_board() {
             case Chess.isPiece.wK:
                 piece = mesh.children.find((child) => child.name === 'whiteKing');
                 customise_piece(tilePos, piece, i);
-            break;
+                break;
         }
     }
     // scene.traverse((mesh) => {
@@ -274,6 +271,7 @@ function click_mouse(event) {
     // Get the selected piece
     if(intersects.length > 0 && !selectedPiece) {
         selectedPiece = intersects[lengthToPiece].object.parent.userData.currentSquare;
+        console.log('selectedPiece: ', intersects[lengthToPiece].object.parent.name);
         return;
     }
 
@@ -292,7 +290,10 @@ function click_mouse(event) {
             selectedObject.userData.currentSquare = targetSquare;
             selectedPiece = null;
 
-            Chess.update_board(board, oldPos, targetSquare);
+            console.log('oldPos: ', oldPos);
+            console.log('newPos: ', targetSquare);
+
+            Chess.update_board(board, oldPos-1, targetSquare-1);
         }
     }
 }
