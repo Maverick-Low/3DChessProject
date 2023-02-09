@@ -287,7 +287,7 @@ function move_piece(event) {
             const oldArrayPos = selectedPiece.userData.currentSquare; 
             const newArrayPos = intersects[0].object.userData.squareNumber; 
             const targetPosition = find_tile_position(newArrayPos);
-            const pieceAtTarget = Chess.board[newArrayPos] = Chess.isPiece.EMPTY ? null : scene.children.find((child) => child.userData.currentSquare == newArrayPos);
+            const pieceAtTarget = scene.children.find((child) => child.userData.currentSquare == newArrayPos);
             const validMove = Chess.valid_move(board, oldArrayPos-1, newArrayPos-1)
 
             if(validMove) {
