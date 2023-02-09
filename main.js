@@ -56,7 +56,7 @@ async function init() {
 
     window.requestAnimationFrame(animate);
 }
-
+ 
 function create_board() {
     const tileGeometry = new THREE.PlaneGeometry(1, 1);
     const lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
@@ -88,8 +88,8 @@ function create_board() {
 
 function animate() {
     controls.update(); 
-    deselect_piece();
-    select_piece();
+    reset_piece_materials();
+    highlight_piece();
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
 }
@@ -107,10 +107,10 @@ function customise_piece(position, piece, currentTile) {
     let material;
 
     if(piece.name.includes('black')) {
-        material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });;
+        material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
     }
     else {
-        material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });;
+        material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
     }
     piece.userData.currentSquare = currentTile;
 
@@ -222,10 +222,11 @@ function move_mouse( event ) {
 }
 
 // Hover over pieces highlights them
-function select_piece(){
+function highlight_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
 
+    // Highlight the first object that is a chess piece
     for(let i = 0; i < intersects.length; i++) {
         if (intersects[i].object.parent.name.includes('white') || intersects[i].object.parent.name.includes('black')) {
             lengthToPiece = i;
@@ -235,7 +236,9 @@ function select_piece(){
             lengthToPiece = 0;
         }
     }
-    if( intersects.length != 0) {
+
+
+    if( intersects.length > 0) {
         const objectGroup = intersects[lengthToPiece].object.parent;
     
         for (let j = 0; j < objectGroup.children.length; j++) {
@@ -252,7 +255,7 @@ function select_piece(){
 }
 
 // Once mouse cursor is no longer hovering on a piece, set it back to its original colours
-function deselect_piece() {
+function reset_piece_materials() {
     for (let i = 0; i < scene.children.length; i++) {
         const objectGroup = scene.children[i];
         for (let j = 0; j < objectGroup.children.length; j++) {
@@ -264,14 +267,14 @@ function deselect_piece() {
 }
 
 // Function to: on first click: select a piece | on second click: Move piece to location
-function click_mouse(event) {
+function move_piece(event) {
     raycaster.setFromCamera(mouse, camera);
     let intersects = raycaster.intersectObjects(scene.children);
 
     // Get the selected piece
     if(intersects.length > 0 && !selectedPiece) {
         selectedPiece = intersects[lengthToPiece].object.parent.userData.currentSquare;
-        console.log('selectedPiece: ', intersects[lengthToPiece].object.parent.name);
+        // console.log('selectedPiece: ', intersects[lengthToPiece].object.parent.name);
         return;
     }
 
@@ -281,19 +284,25 @@ function click_mouse(event) {
         intersects = raycaster.intersectObjects(board.children);
 
         if(intersects.length > 0) {
-            const targetSquare = intersects[0].object.userData.squareNumber;
             const selectedObject = scene.children.find((child) => child.userData.currentSquare == selectedPiece);
-            const targetPosition = find_tile_position(targetSquare);
-            const oldPos = selectedObject.userData.currentSquare;
-      
-            selectedObject.position.set(targetPosition.x, selectedObject.position.y, targetPosition.z);
-            selectedObject.userData.currentSquare = targetSquare;
+            const oldArrayPos = selectedObject.userData.currentSquare; 
+            const newArrayPos = intersects[0].object.userData.squareNumber; 
+            const targetPosition = find_tile_position(newArrayPos);
+
+            const tileHasPiece = Chess.valid_move(board, oldArrayPos-1, newArrayPos-1)
+
+            if(tileHasPiece) {
+                console.log('moved');
+                selectedObject.position.set(targetPosition.x, selectedObject.position.y, targetPosition.z);
+                selectedObject.userData.currentSquare = newArrayPos;
+                Chess.update_board(board, oldArrayPos-1, newArrayPos-1);
+            }
+
             selectedPiece = null;
 
-            console.log('oldPos: ', oldPos);
-            console.log('newPos: ', targetSquare);
-
-            Chess.update_board(board, oldPos-1, targetSquare-1);
+            // console.log('tileHasPiece:', tileHasPiece);
+            // console.log('oldArrayPos: ', oldArrayPos);
+            // console.log('newArrayPos: ', newArrayPos);
         }
     }
 }
@@ -308,7 +317,7 @@ function print_board(event) {
 
 // Current Main
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
-window.addEventListener( 'click', click_mouse);
+window.addEventListener( 'click', move_piece);
 window.addEventListener( 'mousemove', move_mouse, false );
 window.addEventListener('keydown', print_board);
 

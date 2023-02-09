@@ -7,17 +7,6 @@ var ChessEngine = function () {
         bP: 7, bN: 8, bB: 9, bR: 10, bQ: 11, bK: 12
     }; 
 
-    // var DEFAULT_BOARD = [
-    //     'bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR',
-    //     'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP',
-    //      0,    0,    0,    0,    0,    0,    0,    0,
-    //      0,    0,    0,    0,    0,    0,    0,    0,
-    //      0,    0,    0,    0,    0,    0,    0,    0,
-    //      0,    0,    0,    0,    0,    0,    0,    0,
-    //     'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP',
-    //     'wR', 'wN', 'ww', 'wQ', 'wK', 'ww', 'wN', 'wR',
-    // ];
-
     var DEFAULT_BOARD = [
         10,    8,    9,    11,    12,    9,    8,    10,
         7,    7,    7,    7,    7,    7,    7,    7,
@@ -36,11 +25,40 @@ var ChessEngine = function () {
         board[oldPos] = 0; // Piece has left this position so it is empty
         board[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in board[newPos]
     }
+
+    function valid_move(board, oldPos, newPos) {
+        board = DEFAULT_BOARD;
+        const isWhite = (board[oldPos] >= 1 && board[oldPos] <= 6) && (board[newPos] >= 1 && board[newPos] <= 6) ? true: false;
+        const isBlack = (board[oldPos] >= 7 && board[oldPos] <= 12) && (board[newPos] >= 7 && board[newPos] <= 12) ? true: false;
+        const isSamePiece = isBlack || isWhite ? true: false;
+        console.log('isSamePiece:', isSamePiece);
+
+        if(board[newPos] == PIECES.EMPTY || !isSamePiece){
+            console.log('moved piece')
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    
+
+    /* 
+    Possible methods:
+    1. 2 Board Arrays (Prev and New), compare array, if different, delete piece ==> 
+    2. When moving a piece, check the board number. If it has a piece on it, delete the piece
+    */
+   /*
+    take_piece()
+    move_validation() for each peice
+   */
     
     return {
         board: DEFAULT_BOARD,
         isPiece: PIECES,
-        update_board: update_board
+        update_board: update_board,
+        valid_move: valid_move,
     }
 }
 
