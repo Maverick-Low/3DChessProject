@@ -31,10 +31,8 @@ var ChessEngine = function () {
         const isWhite = (board[oldPos] >= 1 && board[oldPos] <= 6) && (board[newPos] >= 1 && board[newPos] <= 6) ? true: false;
         const isBlack = (board[oldPos] >= 7 && board[oldPos] <= 12) && (board[newPos] >= 7 && board[newPos] <= 12) ? true: false;
         const isSamePiece = isBlack || isWhite ? true: false;
-        console.log('isSamePiece:', isSamePiece);
 
         if(board[newPos] == PIECES.EMPTY || !isSamePiece){
-            console.log('moved piece')
             return true;
         }
         else {

@@ -2,8 +2,8 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selectedPiece = null;
-var lengthToPiece;
+var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selected = null;
+var lengthToPiece, blackTaken = 0, whiteTaken = 0;
 var fileName = '/assets/models/2Dplus3DChessSet.glb';
 
 async function init() {
@@ -260,7 +260,7 @@ function reset_piece_materials() {
         const objectGroup = scene.children[i];
         for (let j = 0; j < objectGroup.children.length; j++) {
             if(objectGroup.children[j].material) {
-                objectGroup.children[j].material.opacity = objectGroup.userData.currentSquare == selectedPiece ? 0.5 : 1.0;
+                objectGroup.children[j].material.opacity = objectGroup.userData.currentSquare == selected ? 0.5 : 1.0;
             }  
         }
     }
@@ -272,37 +272,52 @@ function move_piece(event) {
     let intersects = raycaster.intersectObjects(scene.children);
 
     // Get the selected piece
-    if(intersects.length > 0 && !selectedPiece) {
-        selectedPiece = intersects[lengthToPiece].object.parent.userData.currentSquare;
-        // console.log('selectedPiece: ', intersects[lengthToPiece].object.parent.name);
+    if(intersects.length > 0 && !selected) {
+        selected = intersects[lengthToPiece].object.parent.userData.currentSquare;
         return;
     }
 
     // Move the piece onto the target location on the board
-    if(selectedPiece) {
+    if(selected) {
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
 
         if(intersects.length > 0) {
-            const selectedObject = scene.children.find((child) => child.userData.currentSquare == selectedPiece);
-            const oldArrayPos = selectedObject.userData.currentSquare; 
+            const selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
+            const oldArrayPos = selectedPiece.userData.currentSquare; 
             const newArrayPos = intersects[0].object.userData.squareNumber; 
             const targetPosition = find_tile_position(newArrayPos);
+            const pieceAtTarget = Chess.board[newArrayPos] = Chess.isPiece.EMPTY ? null : scene.children.find((child) => child.userData.currentSquare == newArrayPos);
+            const validMove = Chess.valid_move(board, oldArrayPos-1, newArrayPos-1)
 
-            const tileHasPiece = Chess.valid_move(board, oldArrayPos-1, newArrayPos-1)
+            if(validMove) {
+                if (pieceAtTarget) {
+                    if(pieceAtTarget.name.includes('black')) {
+                        pieceAtTarget.position.set(-2,0,blackTaken);
+                        pieceAtTarget.rotation.y = Math.PI/2;
+                        blackTaken++;
+                    }
 
-            if(tileHasPiece) {
-                console.log('moved');
-                selectedObject.position.set(targetPosition.x, selectedObject.position.y, targetPosition.z);
-                selectedObject.userData.currentSquare = newArrayPos;
+                    if(pieceAtTarget.name.includes('white')) {
+                        pieceAtTarget.position.set(10,0,whiteTaken);
+                        pieceAtTarget.rotation.y = Math.PI/-2;
+                        whiteTaken++;
+                    }
+                    pieceAtTarget.userData.currentSquare = null;
+                }
+                selectedPiece.position.set(targetPosition.x, selectedPiece.position.y, targetPosition.z);
+                selectedPiece.userData.currentSquare = newArrayPos;
                 Chess.update_board(board, oldArrayPos-1, newArrayPos-1);
             }
 
-            selectedPiece = null;
+            selected = null;
 
             // console.log('tileHasPiece:', tileHasPiece);
-            // console.log('oldArrayPos: ', oldArrayPos);
-            // console.log('newArrayPos: ', newArrayPos);
+            // console.log('selectedPiece:', selectedPiece.name);
+            // console.log('pieceAtTarget:', pieceAtTarget.name);
+            console.log('pos0: ', Chess.board[0]);
+            console.log('oldArrayPos: ', oldArrayPos);
+            console.log('newArrayPos: ', newArrayPos);
         }
     }
 }
