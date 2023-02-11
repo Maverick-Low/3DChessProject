@@ -16,7 +16,7 @@ async function init() {
 
     // Camera
     const aspectRatio = container.clientWidth / container.clientHeight;
-    camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 50);
+    camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 100);
     camera.position.set(3.5, 6, 10);
 
     // Renderer
@@ -47,10 +47,19 @@ async function init() {
 
     // Add lights
     const light = new THREE.PointLight( 0xffffff, 2, 200 );
-    light.position.set(3.5, 10, 3.5);
+    light.position.set(3.5, 20, 3.5);
     scene.add(light);
+    // const light = new THREE.AmbientLight( 0x404040 ); // soft white light
+    // scene.add( light );
 
     // Add objects into scene
+    const loader = new GLTFLoader();
+    const room = await loader.loadAsync('/assets/models/room1.glb');
+    room.scene.position.set(3.5, 0, 3.5);
+    scene.add(room.scene);
+    // console.log(room.scene.children[2].name);
+    // console.log(room.scene.children[2].isGroup);
+    // scene.add(room.scene.children[0]);
     create_board();
     fill_board();
 
@@ -114,8 +123,6 @@ function customise_piece(position, piece, currentTile) {
     }
     piece.userData.currentSquare = currentTile;
 
-    // piece.children[0].material = material;
-    // piece.children[1].material = material;
     piece.material = material;
     piece.position.set(position.x, position.y, position.z);
     scene.add(piece);
@@ -136,8 +143,6 @@ async function fill_board() {
             case Chess.isPiece.bR:
                 piece = mesh.children.find((child) => child.name === 'blackRook').clone(true);
                 customise_piece(tilePos, piece, i);
-                console.log(piece);
-                console.log(piece.material);
                 break;
 
             case Chess.isPiece.bP:
@@ -226,10 +231,13 @@ function move_mouse( event ) {
 function highlight_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
+    let isWhite, isBlack;
 
     // Highlight the first object that is a chess piece
     for(let i = 0; i < intersects.length; i++) {
         if (intersects[i].object.name.includes('white') || intersects[i].object.name.includes('black')) {
+            isWhite = intersects[lengthToPiece].object.name.includes('white');
+            isBlack = intersects[lengthToPiece].object.name.includes('black');
             lengthToPiece = i;
             break;
         }
@@ -238,7 +246,7 @@ function highlight_piece(){
         }
     }
 
-    if( intersects.length > 0 && !intersects[lengthToPiece].object.name.includes('tile')) {
+    if( intersects.length > 0 && (isBlack || isWhite)) {
         const object = intersects[lengthToPiece].object;
         const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
         const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
@@ -293,7 +301,7 @@ function move_piece(event) {
                     }
 
                     if(pieceAtTarget.name.includes('white')) {
-                        pieceAtTarget.position.set(10,0,whiteTaken);
+                        pieceAtTarget.position.set(9,0,whiteTaken);
                         pieceAtTarget.rotation.y = Math.PI/-2;
                         whiteTaken++;
                     }
