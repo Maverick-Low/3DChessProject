@@ -4,7 +4,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selected = null;
 var lengthToPiece, blackTaken = 0, whiteTaken = 0;
-var fileName = '/assets/models/2Dplus3DChessSet.glb';
+var fileName = '/assets/models/ChessSet-Normal-1.glb';
 
 async function init() {
     // Scene
@@ -114,11 +114,10 @@ function customise_piece(position, piece, currentTile) {
     }
     piece.userData.currentSquare = currentTile;
 
-    piece.children[0].material = material;
-    piece.children[1].material = material;
-
+    // piece.children[0].material = material;
+    // piece.children[1].material = material;
+    piece.material = material;
     piece.position.set(position.x, position.y, position.z);
-    piece.scale.set(0.3, 0.3, 0.3);
     scene.add(piece);
 }
 
@@ -137,6 +136,8 @@ async function fill_board() {
             case Chess.isPiece.bR:
                 piece = mesh.children.find((child) => child.name === 'blackRook').clone(true);
                 customise_piece(tilePos, piece, i);
+                console.log(piece);
+                console.log(piece.material);
                 break;
 
             case Chess.isPiece.bP:
@@ -228,7 +229,7 @@ function highlight_piece(){
 
     // Highlight the first object that is a chess piece
     for(let i = 0; i < intersects.length; i++) {
-        if (intersects[i].object.parent.name.includes('white') || intersects[i].object.parent.name.includes('black')) {
+        if (intersects[i].object.name.includes('white') || intersects[i].object.name.includes('black')) {
             lengthToPiece = i;
             break;
         }
@@ -237,19 +238,14 @@ function highlight_piece(){
         }
     }
 
+    if( intersects.length > 0 && !intersects[lengthToPiece].object.name.includes('tile')) {
+        const object = intersects[lengthToPiece].object;
+        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
 
-    if( intersects.length > 0) {
-        const objectGroup = intersects[lengthToPiece].object.parent;
-    
-        for (let j = 0; j < objectGroup.children.length; j++) {
-            if(!objectGroup.children[j].name.includes('tile')) {
-                const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
-                const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-                objectGroup.children[j].material = objectGroup.children[j].name.includes('black') ? darkMaterial: lightMaterial;
-                objectGroup.children[j].material.transparent = true;
-                objectGroup.children[j].material.opacity = 0.5;
-            }
-        }
+        object.material = object.name.includes('black') ? darkMaterial: lightMaterial;
+        object.material.transparent = true;
+        object.material.opacity = 0.5;
     }
    
 }
@@ -257,11 +253,9 @@ function highlight_piece(){
 // Once mouse cursor is no longer hovering on a piece, set it back to its original colours
 function reset_piece_materials() {
     for (let i = 0; i < scene.children.length; i++) {
-        const objectGroup = scene.children[i];
-        for (let j = 0; j < objectGroup.children.length; j++) {
-            if(objectGroup.children[j].material) {
-                objectGroup.children[j].material.opacity = objectGroup.userData.currentSquare == selected ? 0.5 : 1.0;
-            }  
+        const object = scene.children[i];
+        if(object.material) {
+            object.material.opacity = object.userData.currentSquare == selected ? 0.5 : 1.0;
         }
     }
 }
@@ -273,7 +267,7 @@ function move_piece(event) {
 
     // Get the selected piece
     if(intersects.length > 0 && !selected) {
-        selected = intersects[lengthToPiece].object.parent.userData.currentSquare;
+        selected = intersects[lengthToPiece].object.userData.currentSquare;
         return;
     }
 
