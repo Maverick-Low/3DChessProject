@@ -18,6 +18,17 @@ var ChessEngine = function () {
         4,    2,    3,    5,    6,    3,    2,    4,
     ]
 
+    var FILES_AND_RANKS = [
+        'A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8',
+        'A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7',
+        'A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6',
+        'A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5',
+        'A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4',
+        'A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3',
+        'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
+        'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
+    ]
+
     function update_board(board, oldPos, newPos) {
         board = DEFAULT_BOARD;
         const pieceMoved = board[oldPos]; // board[oldPos] = 1-12. E.g. board[0] = 10 = White Rook
@@ -40,23 +51,20 @@ var ChessEngine = function () {
         }
     }
 
-    
-
-    /* 
-    Possible methods:
-    1. 2 Board Arrays (Prev and New), compare array, if different, delete piece ==> 
-    2. When moving a piece, check the board number. If it has a piece on it, delete the piece
-    */
-   /*
-    take_piece()
-    move_validation() for each peice
-   */
-    
+    function steps_to_borders(piecePosition) {
+        const left = piecePosition % 8;
+        const right = 7 - left;
+        const up = Math.floor(piecePosition / 8);
+        const down = 7 - up;
+        return {left, right, up, down};
+    }
+  
     return {
         board: DEFAULT_BOARD,
         isPiece: PIECES,
         update_board: update_board,
         valid_move: valid_move,
+        steps_to_borders: steps_to_borders,
     }
 }
 
