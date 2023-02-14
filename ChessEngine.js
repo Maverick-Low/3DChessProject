@@ -72,6 +72,22 @@ var ChessEngine = function () {
             if(i <= moves.down) {
                 movementArray[position + (i*8)] = 1;
             }
+
+            if(i <= moves.upLeft) {
+                movementArray[position - (i*9)] = 1;
+            }
+
+            if(i <= moves.upRight) {
+                movementArray[position - (i*7)] = 1;
+            }
+
+            if(i <= moves.downLeft) {
+                movementArray[position + (i*7)] = 1;
+            }
+
+            if(i <= moves.downRight) {
+                movementArray[position + (i*9)] = 1;
+            }
         }
         return movementArray;
     }
