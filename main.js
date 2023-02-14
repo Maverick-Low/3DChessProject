@@ -57,9 +57,6 @@ async function init() {
     const room = await loader.loadAsync('/assets/models/room.glb');
     room.scene.position.set(3.5, 0, 3.5);
     scene.add(room.scene);
-    // console.log(room.scene.children[2].name);
-    // console.log(room.scene.children[2].isGroup);
-    // scene.add(room.scene.children[0]);
     create_board();
     fill_board();
 
@@ -288,6 +285,7 @@ function move_piece(event) {
     if(selected && intersects.length > 0) {
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
+        reset_tile_materials();
 
         selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
         oldArrayPos = selectedPiece.userData.currentSquare; 
@@ -332,7 +330,6 @@ function highlight_tiles(array) {
         const tile = board.children.find((child) => child.userData.squareNumber == i)
         
         if(array[i-1] === 1) {
-            console.log(tile.userData.squareNumber);
             const highlight = new THREE.MeshBasicMaterial({color: 0xf0f446});
             tile.material = highlight;
             tile.material.transparent = true;
@@ -340,6 +337,25 @@ function highlight_tiles(array) {
         }
     }
 }
+
+function reset_tile_materials() {
+    const lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
+    const darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
+    for(let x = 0; x < 8; x++) {
+        for(let z = 0; z < 8; z++) {
+            const tilePos = (x*8 + z);
+            console.log(tilePos);
+            const tile = board.children.find((child) => child.userData.squareNumber == tilePos+1);
+            if (z % 2 == false) {
+                tile.material = x % 2 == false? lightTile: darkTile;
+            }
+            else {
+                tile.material = x % 2 == false? darkTile: lightTile;
+            }
+        }
+    }
+}
+
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
