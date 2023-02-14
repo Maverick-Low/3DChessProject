@@ -344,7 +344,6 @@ function reset_tile_materials() {
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
             const tilePos = (x*8 + z);
-            console.log(tilePos);
             const tile = board.children.find((child) => child.userData.squareNumber == tilePos+1);
             if (z % 2 == false) {
                 tile.material = x % 2 == false? lightTile: darkTile;

@@ -53,23 +53,23 @@ var ChessEngine = function () {
     }
 
     function generate_moves(position) {
-        const {left, right, up, down} = steps_to_borders(position);
+        const moves = steps_to_borders(position);
         const movementArray = new Array(64).fill(0);
         for(let i = 0; i < 8; i++) {
 
-            if(i <= left) {
+            if(i <= moves.left) {
                 movementArray[position - i] = 1;
             }
 
-            if(i <= right) {
+            if(i <= moves.right) {
                 movementArray[position + i] = 1;
             }
 
-            if(i <= up) {
+            if(i <= moves.up) {
                 movementArray[position - (i*8)] = 1;
             }
 
-            if(i <= down) {
+            if(i <= moves.down) {
                 movementArray[position + (i*8)] = 1;
             }
         }
@@ -81,7 +81,23 @@ var ChessEngine = function () {
         const right = 7 - left;
         const up = Math.floor(piecePosition / 8);
         const down = 7 - up;
-        return {left, right, up, down};
+        const upLeft = Math.min(up, left);
+        const upRight = Math.min(up, right);
+        const downLeft = Math.min(down, left);
+        const downRight = Math.min(down, right);
+        
+        const moves = {
+            left: left,
+            right: right,
+            up: up,
+            down: down,
+            upLeft: upLeft,
+            upRight: upRight,
+            downLeft: downLeft,
+            downRight: downRight,
+        }
+        
+        return moves;
     }
   
     return {
