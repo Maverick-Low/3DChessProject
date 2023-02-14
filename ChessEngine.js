@@ -39,16 +39,41 @@ var ChessEngine = function () {
 
     function valid_move(board, oldPos, newPos) {
         board = DEFAULT_BOARD;
+        const movementArray = generate_moves(oldPos);
         const isWhite = (board[oldPos] >= 1 && board[oldPos] <= 6) && (board[newPos] >= 1 && board[newPos] <= 6) ? true: false;
         const isBlack = (board[oldPos] >= 7 && board[oldPos] <= 12) && (board[newPos] >= 7 && board[newPos] <= 12) ? true: false;
         const isSamePiece = isBlack || isWhite ? true: false;
 
-        if(board[newPos] == PIECES.EMPTY || !isSamePiece){
+        if( movementArray[newPos] == 1 && (board[newPos] == PIECES.EMPTY || !isSamePiece)){
             return true;
         }
         else {
             return false;
         }
+    }
+
+    function generate_moves(position) {
+        const {left, right, up, down} = steps_to_borders(position);
+        const movementArray = new Array(64).fill(0);
+        for(let i = 0; i < 8; i++) {
+
+            if(i <= left) {
+                movementArray[position - i] = 1;
+            }
+
+            if(i <= right) {
+                movementArray[position + i] = 1;
+            }
+
+            if(i <= up) {
+                movementArray[position - (i*8)] = 1;
+            }
+
+            if(i <= down) {
+                movementArray[position + (i*8)] = 1;
+            }
+        }
+        return movementArray;
     }
 
     function steps_to_borders(piecePosition) {
@@ -65,6 +90,7 @@ var ChessEngine = function () {
         update_board: update_board,
         valid_move: valid_move,
         steps_to_borders: steps_to_borders,
+        generate_moves: generate_moves,
     }
 }
 
