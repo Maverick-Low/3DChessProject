@@ -29,16 +29,16 @@ var ChessEngine = function () {
         'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
     ]
 
-    function update_board(board, oldPos, newPos) {
-        board = DEFAULT_BOARD;
+    function update_board(oldPos, newPos) {
+        const board = DEFAULT_BOARD;
         const pieceMoved = board[oldPos]; // board[oldPos] = 1-12. E.g. board[0] = 10 = White Rook
 
         board[oldPos] = 0; // Piece has left this position so it is empty
         board[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in board[newPos]
     }
 
-    function valid_move(board, oldPos, newPos) {
-        board = DEFAULT_BOARD;
+    function valid_move(oldPos, newPos) {
+        const board = DEFAULT_BOARD;
         const movementArray = generate_moves(oldPos);
         const isWhite = (board[oldPos] >= 1 && board[oldPos] <= 6) && (board[newPos] >= 1 && board[newPos] <= 6) ? true: false;
         const isBlack = (board[oldPos] >= 7 && board[oldPos] <= 12) && (board[newPos] >= 7 && board[newPos] <= 12) ? true: false;
@@ -52,43 +52,72 @@ var ChessEngine = function () {
         }
     }
 
+    function piece_collision(position) {
+        const board = DEFAULT_BOARD;
+        let collision = false;
+        if(board[position] != PIECES.EMPTY) {
+            collision = true;
+        }
+        return collision;
+    }
+
     function generate_moves(position) {
         const moves = steps_to_borders(position);
         const movementArray = new Array(64).fill(0);
-        for(let i = 0; i < 8; i++) {
 
-            if(i <= moves.left) {
+        const collisions = {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            upLeft: false,
+            upRight: false,
+            downLeft: false,
+            downRight: false,
+        }
+
+        for(let i = 1; i < 8; i++) {
+            if(i <= moves.left && !collisions.left) {     
                 movementArray[position - i] = 1;
+                collisions.left = piece_collision(position - i);
             }
 
-            if(i <= moves.right) {
+            if(i <= moves.right && !collisions.right) {
                 movementArray[position + i] = 1;
+                collisions.right = piece_collision(position + i);
             }
 
-            if(i <= moves.up) {
+            if(i <= moves.up && !collisions.up ) {
                 movementArray[position - (i*8)] = 1;
+                collisions.up = piece_collision(position - (i*8));
             }
 
             if(i <= moves.down) {
                 movementArray[position + (i*8)] = 1;
+                collisions.down = piece_collision(position + (i*8));
             }
 
-            if(i <= moves.upLeft) {
+            if(i <= moves.upLeft && !collisions.upLeft) {
                 movementArray[position - (i*9)] = 1;
+                collisions.upLeft = piece_collision(position - (i*9));
             }
 
-            if(i <= moves.upRight) {
+            if(i <= moves.upRight && !collisions.upRight  ) {
                 movementArray[position - (i*7)] = 1;
+                collisions.upRight = piece_collision(position - (i*7));
             }
 
-            if(i <= moves.downLeft) {
+            if(i <= moves.downLeft && !collisions.downLeft) {
                 movementArray[position + (i*7)] = 1;
+                collisions.downLeft = piece_collision(position + (i*7));
             }
 
-            if(i <= moves.downRight) {
+            if(i <= moves.downRight && !collisions.downRight) {
                 movementArray[position + (i*9)] = 1;
+                collisions.downRight = piece_collision(position + (i*9));                
             }
         }
+
         return movementArray;
     }
 

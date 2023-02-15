@@ -292,7 +292,7 @@ function move_piece(event) {
         const newArrayPos = intersects[0].object.userData.squareNumber; 
         const targetPosition = find_tile_position(newArrayPos);
         const pieceAtTarget = scene.children.find((child) => child.userData.currentSquare == newArrayPos);
-        const validMove = Chess.valid_move(board, oldArrayPos-1, newArrayPos-1)
+        const validMove = Chess.valid_move(oldArrayPos-1, newArrayPos-1)
 
         if(validMove) {
             if(pieceAtTarget && pieceAtTarget.name.includes('black')) {
@@ -310,7 +310,7 @@ function move_piece(event) {
             }
             selectedPiece.position.set(targetPosition.x, selectedPiece.position.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newArrayPos;
-            Chess.update_board(board, oldArrayPos-1, newArrayPos-1);
+            Chess.update_board(oldArrayPos-1, newArrayPos-1);
         }
         selected = null;
 
