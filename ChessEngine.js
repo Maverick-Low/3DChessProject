@@ -63,8 +63,89 @@ var ChessEngine = function () {
         return isSamePiece;
     }
 
-    function generate_moves(position) {
+    function check_piece(position) {
         const moves = steps_to_borders(position);
+        const piece = BOARD[position];
+     
+        switch(piece) {
+            case PIECES.wP:
+                const whitePawnMoves = {
+                    left: 0,
+                    right: 0,
+                    up: 1,
+                    down: 0,
+                    upLeft: 0,
+                    upRight: 0,
+                    downLeft: 0,
+                    downRight: 0,
+                }
+                return whitePawnMoves;
+
+            case PIECES.bP:
+                const blackPawnMoves = {
+                    left: 0,
+                    right: 0,
+                    up: 0,
+                    down: 1,
+                    upLeft: 0,
+                    upRight: 0,
+                    downLeft: 0,
+                    downRight: 0,
+                }
+                return blackPawnMoves;
+
+            case PIECES.wB:
+            case PIECES.bB:
+                const bishopMoves = {
+                    left: 0,
+                    right: 0,
+                    up: 0,
+                    down: 0,
+                    upLeft: moves.upLeft,
+                    upRight: moves.upRight,
+                    downLeft: moves.downLeft,
+                    downRight: moves.downRight,
+                }
+                return bishopMoves;
+
+            case PIECES.wR:
+            case PIECES.bR:   
+                const rookMoves = {
+                    left: moves.left,
+                    right: moves.right,
+                    up: moves.up,
+                    down: moves.down,
+                    upLeft: 0,
+                    upRight: 0,
+                    downLeft: 0,
+                    downRight: 0,
+                }
+                return rookMoves;
+            
+            case PIECES.wK:
+            case PIECES.bK:   
+                const kingMoves = {
+                    left: 1,
+                    right: 1,
+                    up: 1,
+                    down: 1,
+                    upLeft: 1,
+                    upRight: 1,
+                    downLeft: 1,
+                    downRight: 1,
+                }
+                return kingMoves;
+            default:
+                return moves;
+        }
+       
+
+       
+    }
+
+    function generate_moves(position) {
+        // const moves = steps_to_borders(position);
+        const moves = check_piece(position);
         const movementArray = new Array(64).fill(0);
 
         const collisions = {
@@ -122,29 +203,21 @@ var ChessEngine = function () {
             if (!isSamePiece.downRight) {
                 isSamePiece.downRight = check_same_piece(position, position+(i*9));
             }
-            // isSamePiece.up = check_same_piece(position, position - (i*8));
-            // isSamePiece.down = check_same_piece(position, position + (i*8));
-            // isSamePiece.upLeft = check_same_piece(position, position - (i*9));
-            // isSamePiece.upRight = check_same_piece(position, position - (i*7));
-            // isSamePiece.downLeft = check_same_piece(position, position + (i*7));
-            // isSamePiece.downRight = check_same_piece(position, position + (i*9));
             
             
             if(i <= moves.left && !collisions.left && !isSamePiece.left) {     
-                collisions.left = check_piece_collision(position - i);
                 movementArray[position - i] = 1;
+                collisions.left = check_piece_collision(position - i);
             }
 
             if(i <= moves.right && !collisions.right && !isSamePiece.right) {
                 movementArray[position + i] = 1;
                 collisions.right = check_piece_collision(position + i);
-                isSamePiece.right = check_same_piece(position, position+i)
             }
 
             if(i <= moves.up && !collisions.up && !isSamePiece.up ) {
                 movementArray[position - (i*8)] = 1;
                 collisions.up = check_piece_collision(position - (i*8));
-                isSamePiece.up = check_same_piece(position,position - (i*8));
             }
 
             if(i <= moves.down && !collisions.down && !isSamePiece.down) {
