@@ -29,7 +29,6 @@ var ChessEngine = function () {
         'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
     ]
     
-
     function update_board(oldPos, newPos) {
         const pieceMoved = BOARD[oldPos]; // BOARD[oldPos] = 1-12. E.g. BOARD[0] = 10 = White Rook
 
@@ -39,9 +38,7 @@ var ChessEngine = function () {
 
     function valid_move(oldPos, newPos) {
         const movementArray = generate_moves(oldPos);
-        const isWhite = (BOARD[oldPos] >= 1 && BOARD[oldPos] <= 6) && (BOARD[newPos] >= 1 && BOARD[newPos] <= 6) ? true: false;
-        const isBlack = (BOARD[oldPos] >= 7 && BOARD[oldPos] <= 12) && (BOARD[newPos] >= 7 && BOARD[newPos] <= 12) ? true: false;
-        const isSamePiece = isBlack || isWhite ? true: false;
+        const isSamePiece = check_same_piece(oldPos, newPos);
 
         if( movementArray[newPos] == 1 && (BOARD[newPos] == PIECES.EMPTY || !isSamePiece)){
             return true;
@@ -93,15 +90,46 @@ var ChessEngine = function () {
         }
 
         for(let i = 1; i < 8; i++) {
-            isSamePiece.left = check_same_piece(position, position-i);
-            isSamePiece.right = check_same_piece(position, position+i)
-            isSamePiece.up = check_same_piece(position, position - (i*8));
-            isSamePiece.down = check_same_piece(position, position + (i*8));
-            isSamePiece.upLeft = check_same_piece(position, position - (i*9));
-            isSamePiece.upRight = check_same_piece(position, position - (i*7));
-            isSamePiece.downLeft = check_same_piece(position, position + (i*7));
-            isSamePiece.downRight = check_same_piece(position, position + (i*9));
+           
+            if(!isSamePiece.left) {
+                isSamePiece.left = check_same_piece(position, position-i);
+            }
 
+            if (!isSamePiece.right) {
+                isSamePiece.right = check_same_piece(position, position+i);
+            }
+
+            if (!isSamePiece.up) {
+                isSamePiece.up = check_same_piece(position, position-(i*8));
+            }
+
+            if (!isSamePiece.down) {
+                isSamePiece.down = check_same_piece(position, position+(i*8));
+            }
+
+            if (!isSamePiece.upLeft) {
+                isSamePiece.upLeft = check_same_piece(position, position - (i*9));
+            }
+
+            if (!isSamePiece.upRight) {
+                isSamePiece.upRight = check_same_piece(position, position- (i*7));
+            }
+
+            if (!isSamePiece.downLeft) {
+                isSamePiece.downLeft = check_same_piece(position, position+(i*7));
+            }
+
+            if (!isSamePiece.downRight) {
+                isSamePiece.downRight = check_same_piece(position, position+(i*9));
+            }
+            // isSamePiece.up = check_same_piece(position, position - (i*8));
+            // isSamePiece.down = check_same_piece(position, position + (i*8));
+            // isSamePiece.upLeft = check_same_piece(position, position - (i*9));
+            // isSamePiece.upRight = check_same_piece(position, position - (i*7));
+            // isSamePiece.downLeft = check_same_piece(position, position + (i*7));
+            // isSamePiece.downRight = check_same_piece(position, position + (i*9));
+            
+            
             if(i <= moves.left && !collisions.left && !isSamePiece.left) {     
                 collisions.left = check_piece_collision(position - i);
                 movementArray[position - i] = 1;
@@ -110,6 +138,7 @@ var ChessEngine = function () {
             if(i <= moves.right && !collisions.right && !isSamePiece.right) {
                 movementArray[position + i] = 1;
                 collisions.right = check_piece_collision(position + i);
+                isSamePiece.right = check_same_piece(position, position+i)
             }
 
             if(i <= moves.up && !collisions.up && !isSamePiece.up ) {
