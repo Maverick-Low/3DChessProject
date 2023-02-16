@@ -7,7 +7,7 @@ var ChessEngine = function () {
         bP: 7, bN: 8, bB: 9, bR: 10, bQ: 11, bK: 12
     }; 
 
-    var DEFAULT_BOARD = [
+    var BOARD = [
         10,    8,    9,    11,    12,    9,    8,    10,
         7,    7,    7,    7,    7,    7,    7,    7,
         0,    0,    0,    0,    0,    0,    0,    0,
@@ -28,23 +28,22 @@ var ChessEngine = function () {
         'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2',
         'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
     ]
+    
 
     function update_board(oldPos, newPos) {
-        const board = DEFAULT_BOARD;
-        const pieceMoved = board[oldPos]; // board[oldPos] = 1-12. E.g. board[0] = 10 = White Rook
+        const pieceMoved = BOARD[oldPos]; // BOARD[oldPos] = 1-12. E.g. BOARD[0] = 10 = White Rook
 
-        board[oldPos] = 0; // Piece has left this position so it is empty
-        board[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in board[newPos]
+        BOARD[oldPos] = 0; // Piece has left this position so it is empty
+        BOARD[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in BOARD[newPos]
     }
 
     function valid_move(oldPos, newPos) {
-        const board = DEFAULT_BOARD;
         const movementArray = generate_moves(oldPos);
-        const isWhite = (board[oldPos] >= 1 && board[oldPos] <= 6) && (board[newPos] >= 1 && board[newPos] <= 6) ? true: false;
-        const isBlack = (board[oldPos] >= 7 && board[oldPos] <= 12) && (board[newPos] >= 7 && board[newPos] <= 12) ? true: false;
+        const isWhite = (BOARD[oldPos] >= 1 && BOARD[oldPos] <= 6) && (BOARD[newPos] >= 1 && BOARD[newPos] <= 6) ? true: false;
+        const isBlack = (BOARD[oldPos] >= 7 && BOARD[oldPos] <= 12) && (BOARD[newPos] >= 7 && BOARD[newPos] <= 12) ? true: false;
         const isSamePiece = isBlack || isWhite ? true: false;
 
-        if( movementArray[newPos] == 1 && (board[newPos] == PIECES.EMPTY || !isSamePiece)){
+        if( movementArray[newPos] == 1 && (BOARD[newPos] == PIECES.EMPTY || !isSamePiece)){
             return true;
         }
         else {
@@ -52,13 +51,19 @@ var ChessEngine = function () {
         }
     }
 
-    function piece_collision(position) {
-        const board = DEFAULT_BOARD;
+    function check_piece_collision(position) {
         let collision = false;
-        if(board[position] != PIECES.EMPTY) {
+        if(BOARD[position] != PIECES.EMPTY) {
             collision = true;
         }
         return collision;
+    }
+
+    function check_same_piece(oldPos, newPos) {
+        const isWhite = (BOARD[oldPos] >= 1 && BOARD[oldPos] <= 6) && (BOARD[newPos] >= 1 && BOARD[newPos] <= 6) ? true: false;
+        const isBlack = (BOARD[oldPos] >= 7 && BOARD[oldPos] <= 12) && (BOARD[newPos] >= 7 && BOARD[newPos] <= 12) ? true: false;
+        const isSamePiece = isBlack || isWhite ? true: false;
+        return isSamePiece;
     }
 
     function generate_moves(position) {
@@ -76,45 +81,66 @@ var ChessEngine = function () {
             downRight: false,
         }
 
+        const isSamePiece = {
+            left: false,
+            right: false,
+            up: false,
+            down: false,
+            upLeft: false,
+            upRight: false,
+            downLeft: false,
+            downRight: false,
+        }
+
         for(let i = 1; i < 8; i++) {
-            if(i <= moves.left && !collisions.left) {     
+            isSamePiece.left = check_same_piece(position, position-i);
+            isSamePiece.right = check_same_piece(position, position+i)
+            isSamePiece.up = check_same_piece(position, position - (i*8));
+            isSamePiece.down = check_same_piece(position, position + (i*8));
+            isSamePiece.upLeft = check_same_piece(position, position - (i*9));
+            isSamePiece.upRight = check_same_piece(position, position - (i*7));
+            isSamePiece.downLeft = check_same_piece(position, position + (i*7));
+            isSamePiece.downRight = check_same_piece(position, position + (i*9));
+
+            if(i <= moves.left && !collisions.left && !isSamePiece.left) {     
+                collisions.left = check_piece_collision(position - i);
                 movementArray[position - i] = 1;
-                collisions.left = piece_collision(position - i);
             }
 
-            if(i <= moves.right && !collisions.right) {
+            if(i <= moves.right && !collisions.right && !isSamePiece.right) {
                 movementArray[position + i] = 1;
-                collisions.right = piece_collision(position + i);
+                collisions.right = check_piece_collision(position + i);
             }
 
-            if(i <= moves.up && !collisions.up ) {
+            if(i <= moves.up && !collisions.up && !isSamePiece.up ) {
                 movementArray[position - (i*8)] = 1;
-                collisions.up = piece_collision(position - (i*8));
+                collisions.up = check_piece_collision(position - (i*8));
+                isSamePiece.up = check_same_piece(position,position - (i*8));
             }
 
-            if(i <= moves.down) {
+            if(i <= moves.down && !collisions.down && !isSamePiece.down) {
                 movementArray[position + (i*8)] = 1;
-                collisions.down = piece_collision(position + (i*8));
+                collisions.down = check_piece_collision(position + (i*8));
             }
 
-            if(i <= moves.upLeft && !collisions.upLeft) {
+            if(i <= moves.upLeft && !collisions.upLeft && !isSamePiece.upLeft) {
                 movementArray[position - (i*9)] = 1;
-                collisions.upLeft = piece_collision(position - (i*9));
+                collisions.upLeft = check_piece_collision(position - (i*9));
             }
 
-            if(i <= moves.upRight && !collisions.upRight  ) {
+            if(i <= moves.upRight && !collisions.upRight && !isSamePiece.upRight ) {
                 movementArray[position - (i*7)] = 1;
-                collisions.upRight = piece_collision(position - (i*7));
+                collisions.upRight = check_piece_collision(position - (i*7));
             }
 
-            if(i <= moves.downLeft && !collisions.downLeft) {
+            if(i <= moves.downLeft && !collisions.downLeft && !isSamePiece.downLeft) {
                 movementArray[position + (i*7)] = 1;
-                collisions.downLeft = piece_collision(position + (i*7));
+                collisions.downLeft = check_piece_collision(position + (i*7));
             }
 
-            if(i <= moves.downRight && !collisions.downRight) {
+            if(i <= moves.downRight && !collisions.downRight && !isSamePiece.downRight) {
                 movementArray[position + (i*9)] = 1;
-                collisions.downRight = piece_collision(position + (i*9));                
+                collisions.downRight = check_piece_collision(position + (i*9));                
             }
         }
 
@@ -146,7 +172,7 @@ var ChessEngine = function () {
     }
   
     return {
-        board: DEFAULT_BOARD,
+        board: BOARD,
         isPiece: PIECES,
         update_board: update_board,
         valid_move: valid_move,
