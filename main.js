@@ -231,28 +231,29 @@ function highlight_piece(){
     let isWhite, isBlack;
 
     // Highlight the first object that is a chess piece
-    for(let i = 0; i < intersects.length; i++) {
-        if (intersects[i].object.name.includes('white') || intersects[i].object.name.includes('black')) {
-            isWhite = intersects[lengthToPiece].object.name.includes('white');
-            isBlack = intersects[lengthToPiece].object.name.includes('black');
-            lengthToPiece = i;
-            break;
+    if(!selected) {
+        for(let i = 0; i < intersects.length; i++) {
+            if (intersects[i].object.name.includes('white') || intersects[i].object.name.includes('black')) {
+                isWhite = intersects[lengthToPiece].object.name.includes('white');
+                isBlack = intersects[lengthToPiece].object.name.includes('black');
+                lengthToPiece = i;
+                break;
+            }
+            else {
+                lengthToPiece = 0;
+            }
         }
-        else {
-            lengthToPiece = 0;
+
+        if( intersects.length > 0 && (isBlack || isWhite)) {
+            const object = intersects[lengthToPiece].object;
+            const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+            const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+    
+            object.material = object.name.includes('black') ? darkMaterial: lightMaterial;
+            object.material.transparent = true;
+            object.material.opacity = 0.5;
         }
     }
-
-    if( intersects.length > 0 && (isBlack || isWhite)) {
-        const object = intersects[lengthToPiece].object;
-        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
-        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-
-        object.material = object.name.includes('black') ? darkMaterial: lightMaterial;
-        object.material.transparent = true;
-        object.material.opacity = 0.5;
-    }
-   
 }
 
 // Once mouse cursor is no longer hovering on a piece, set it back to its original colours
