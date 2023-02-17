@@ -119,6 +119,7 @@ function customise_piece(position, piece, currentTile) {
         material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
     }
     piece.userData.currentSquare = currentTile;
+    piece.userData.taken = false;
 
     piece.material = material;
     piece.position.set(position.x, position.y, position.z);
@@ -262,6 +263,9 @@ function reset_piece_materials() {
         const object = scene.children[i];
         if(object.material) {
             object.material.opacity = object.userData.currentSquare == selected ? 0.5 : 1.0;
+            if (object.userData.taken == true) {
+                object.material.opacity = 1;
+            }
         }
     }
 }
@@ -301,6 +305,7 @@ function move_piece(event) {
                 pieceAtTarget.rotation.y = Math.PI/2;
                 blackTaken++;
                 pieceAtTarget.userData.currentSquare = null;
+                pieceAtTarget.userData.taken = true;
             }
 
             else if(pieceAtTarget && pieceAtTarget.name.includes('white')) {
@@ -308,6 +313,7 @@ function move_piece(event) {
                 pieceAtTarget.rotation.y = Math.PI/-2;
                 whiteTaken++;
                 pieceAtTarget.userData.currentSquare = null;
+                pieceAtTarget.userData.taken = true;
             }
             selectedPiece.position.set(targetPosition.x, selectedPiece.position.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newArrayPos;
@@ -323,6 +329,11 @@ function move_piece(event) {
             // console.log('Steps:',rightSteps);
             // console.log('oldArrayPos: ', oldArrayPos);
             // console.log('newArrayPos: ', newArrayPos);
+            // if(pieceAtTarget) {
+            //     console.log(pieceAtTarget.name);
+            //     console.log(pieceAtTarget.userData.taken);
+            // }
+            
     }
 }
 

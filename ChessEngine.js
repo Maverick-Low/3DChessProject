@@ -63,7 +63,7 @@ var ChessEngine = function () {
         return isSamePiece;
     }
 
-    function check_piece(position) {
+    function check_piece_movement(position) {
         const moves = steps_to_borders(position);
         const piece = BOARD[position];
      
@@ -144,8 +144,7 @@ var ChessEngine = function () {
     }
 
     function generate_moves(position) {
-        // const moves = steps_to_borders(position);
-        const moves = check_piece(position);
+        const moves = check_piece_movement(position);
         const movementArray = new Array(64).fill(0);
 
         const collisions = {
@@ -170,81 +169,131 @@ var ChessEngine = function () {
             downRight: false,
         }
 
-        for(let i = 1; i < 8; i++) {
-           
-            if(!isSamePiece.left) {
-                isSamePiece.left = check_same_piece(position, position-i);
-            }
+        const isSame = { // Checking same piece for the knight
+            topLeft: true,
+            topRight: true,
+            bottomLeft: true,
+            bottomRight: true,
+        }
 
-            if (!isSamePiece.right) {
-                isSamePiece.right = check_same_piece(position, position+i);
-            }
+        if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
 
-            if (!isSamePiece.up) {
-                isSamePiece.up = check_same_piece(position, position-(i*8));
-            }
+            for(let i = 1; i <= 2; i++) {
+                const leftSide = position - i;
+                const rightSide = position + i;
 
-            if (!isSamePiece.down) {
-                isSamePiece.down = check_same_piece(position, position+(i*8));
-            }
+                if(i == 1) {
+                    isSame.topLeft = check_same_piece(position, leftSide - 16);
+                    isSame.topRight = check_same_piece(position, rightSide - 16);
+                    isSame.bottomLeft = check_same_piece(position, leftSide + 16);
+                    isSame.bottomRight = check_same_piece(position, rightSide + 16);
 
-            if (!isSamePiece.upLeft) {
-                isSamePiece.upLeft = check_same_piece(position, position - (i*9));
-            }
+                    if(i <= moves.left) {
+                        movementArray[leftSide - 16] = i <= moves.up && !isSame.topLeft? 1 : 0;   
+                        movementArray[leftSide + 16] = i <= moves.down && !isSame.bottomLeft? 1 : 0;
+                    }
+                    if(i <= moves.right) {
+                        movementArray[rightSide - 16] = i <= moves.up && !isSame.topRight? 1 : 0;   
+                        movementArray[rightSide + 16] = i <= moves.down && !isSame.bottomRight? 1 : 0;
+                    }
+                } 
 
-            if (!isSamePiece.upRight) {
-                isSamePiece.upRight = check_same_piece(position, position- (i*7));
-            }
+                else if (i == 2) {
+                    isSame.topLeft = check_same_piece(position, leftSide - 8);
+                    isSame.topRight = check_same_piece(position, rightSide - 8);
+                    isSame.bottomLeft = check_same_piece(position, leftSide + 8);
+                    isSame.bottomRight = check_same_piece(position, rightSide + 8);
 
-            if (!isSamePiece.downLeft) {
-                isSamePiece.downLeft = check_same_piece(position, position+(i*7));
-            }
-
-            if (!isSamePiece.downRight) {
-                isSamePiece.downRight = check_same_piece(position, position+(i*9));
-            }
-            
-            
-            if(i <= moves.left && !collisions.left && !isSamePiece.left) {     
-                movementArray[position - i] = 1;
-                collisions.left = check_piece_collision(position - i);
-            }
-
-            if(i <= moves.right && !collisions.right && !isSamePiece.right) {
-                movementArray[position + i] = 1;
-                collisions.right = check_piece_collision(position + i);
-            }
-
-            if(i <= moves.up && !collisions.up && !isSamePiece.up ) {
-                movementArray[position - (i*8)] = 1;
-                collisions.up = check_piece_collision(position - (i*8));
-            }
-
-            if(i <= moves.down && !collisions.down && !isSamePiece.down) {
-                movementArray[position + (i*8)] = 1;
-                collisions.down = check_piece_collision(position + (i*8));
-            }
-
-            if(i <= moves.upLeft && !collisions.upLeft && !isSamePiece.upLeft) {
-                movementArray[position - (i*9)] = 1;
-                collisions.upLeft = check_piece_collision(position - (i*9));
-            }
-
-            if(i <= moves.upRight && !collisions.upRight && !isSamePiece.upRight ) {
-                movementArray[position - (i*7)] = 1;
-                collisions.upRight = check_piece_collision(position - (i*7));
-            }
-
-            if(i <= moves.downLeft && !collisions.downLeft && !isSamePiece.downLeft) {
-                movementArray[position + (i*7)] = 1;
-                collisions.downLeft = check_piece_collision(position + (i*7));
-            }
-
-            if(i <= moves.downRight && !collisions.downRight && !isSamePiece.downRight) {
-                movementArray[position + (i*9)] = 1;
-                collisions.downRight = check_piece_collision(position + (i*9));                
+                    if(i <= moves.left) {
+                        movementArray[leftSide - 8] = i <= moves.up && !isSame.topLeft? 1 : 0;   
+                        movementArray[leftSide + 8] = i <= moves.down && !isSame.bottomLeft? 1 : 0;
+                    }
+                    if(i <= moves.right) {
+                        movementArray[rightSide - 8] = i <= moves.up && !isSame.topRight? 1 : 0;   
+                        movementArray[rightSide + 8] = i <= moves.down && !isSame.bottomRight? 1 : 0 ;
+                    }  
+                }
             }
         }
+
+        else {
+            for(let i = 1; i < 8; i++) {
+           
+                if(!isSamePiece.left) {
+                    isSamePiece.left = check_same_piece(position, position-i);
+                }
+    
+                if (!isSamePiece.right) {
+                    isSamePiece.right = check_same_piece(position, position+i);
+                }
+    
+                if (!isSamePiece.up) {
+                    isSamePiece.up = check_same_piece(position, position-(i*8));
+                }
+    
+                if (!isSamePiece.down) {
+                    isSamePiece.down = check_same_piece(position, position+(i*8));
+                }
+    
+                if (!isSamePiece.upLeft) {
+                    isSamePiece.upLeft = check_same_piece(position, position - (i*9));
+                }
+    
+                if (!isSamePiece.upRight) {
+                    isSamePiece.upRight = check_same_piece(position, position- (i*7));
+                }
+    
+                if (!isSamePiece.downLeft) {
+                    isSamePiece.downLeft = check_same_piece(position, position+(i*7));
+                }
+    
+                if (!isSamePiece.downRight) {
+                    isSamePiece.downRight = check_same_piece(position, position+(i*9));
+                }
+                
+                
+                if(i <= moves.left && !collisions.left && !isSamePiece.left) {     
+                    movementArray[position - i] = 1;
+                    collisions.left = check_piece_collision(position - i);
+                }
+    
+                if(i <= moves.right && !collisions.right && !isSamePiece.right) {
+                    movementArray[position + i] = 1;
+                    collisions.right = check_piece_collision(position + i);
+                }
+    
+                if(i <= moves.up && !collisions.up && !isSamePiece.up ) {
+                    movementArray[position - (i*8)] = 1;
+                    collisions.up = check_piece_collision(position - (i*8));
+                }
+    
+                if(i <= moves.down && !collisions.down && !isSamePiece.down) {
+                    movementArray[position + (i*8)] = 1;
+                    collisions.down = check_piece_collision(position + (i*8));
+                }
+    
+                if(i <= moves.upLeft && !collisions.upLeft && !isSamePiece.upLeft) {
+                    movementArray[position - (i*9)] = 1;
+                    collisions.upLeft = check_piece_collision(position - (i*9));
+                }
+    
+                if(i <= moves.upRight && !collisions.upRight && !isSamePiece.upRight ) {
+                    movementArray[position - (i*7)] = 1;
+                    collisions.upRight = check_piece_collision(position - (i*7));
+                }
+    
+                if(i <= moves.downLeft && !collisions.downLeft && !isSamePiece.downLeft) {
+                    movementArray[position + (i*7)] = 1;
+                    collisions.downLeft = check_piece_collision(position + (i*7));
+                }
+    
+                if(i <= moves.downRight && !collisions.downRight && !isSamePiece.downRight) {
+                    movementArray[position + (i*9)] = 1;
+                    collisions.downRight = check_piece_collision(position + (i*9));                
+                }
+            }
+        }
+       
 
         return movementArray;
     }
@@ -278,7 +327,6 @@ var ChessEngine = function () {
         isPiece: PIECES,
         update_board: update_board,
         valid_move: valid_move,
-        steps_to_borders: steps_to_borders,
         generate_moves: generate_moves,
     }
 }
