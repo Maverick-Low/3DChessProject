@@ -36,6 +36,7 @@ var ChessEngine = function () {
         BOARD[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in BOARD[newPos]
     }
 
+    // Checks if move is in the movement array and that the new position is either empty or an enemy's piece
     function valid_move(oldPos, newPos) {
         const movementArray = generate_all_moves(oldPos);
         const isSamePiece = check_same_piece(oldPos, newPos);
@@ -48,6 +49,32 @@ var ChessEngine = function () {
         }
     }
 
+    // Returns a list that contains the number of steps to the edge in every direction
+    function steps_to_borders(piecePosition) {
+        const left = piecePosition % 8;
+        const right = 7 - left;
+        const up = Math.floor(piecePosition / 8);
+        const down = 7 - up;
+        const upLeft = Math.min(up, left);
+        const upRight = Math.min(up, right);
+        const downLeft = Math.min(down, left);
+        const downRight = Math.min(down, right);
+        
+        const moves = {
+            left: left,
+            right: right,
+            up: up,
+            down: down,
+            upLeft: upLeft,
+            upRight: upRight,
+            downLeft: downLeft,
+            downRight: downRight,
+        }
+        
+        return moves;
+    }
+
+    // Returns true when the specified position has a piece on it
     function check_piece_collision(position) {
         let collision = false;
         if(BOARD[position] != PIECES.EMPTY) {
@@ -56,6 +83,7 @@ var ChessEngine = function () {
         return collision;
     }
 
+    // Returns true when piece at oldPos and piece at newPos are of the same colour
     function check_same_piece(oldPos, newPos) {
         const isWhite = (BOARD[oldPos] >= 1 && BOARD[oldPos] <= 6) && (BOARD[newPos] >= 1 && BOARD[newPos] <= 6) ? true: false;
         const isBlack = (BOARD[oldPos] >= 7 && BOARD[oldPos] <= 12) && (BOARD[newPos] >= 7 && BOARD[newPos] <= 12) ? true: false;
@@ -63,34 +91,43 @@ var ChessEngine = function () {
         return isSamePiece;
     }
 
+    // Specifies the direction and length each piece can move
     function check_piece_type(position) {
         const moves = steps_to_borders(position);
         const piece = BOARD[position];
      
         switch(piece) {
             case PIECES.wP:
-                const whitePawnMoves = {
+                const atWhiteStartRow = (position > 47 && position < 56)? true : false;
+                const wCanTakePieceLeft = BOARD[position-9] >= 7? true: false;
+                const wCanTakePieceRight = BOARD[position-7] >= 7? true: false;
+                const wIsPieceBlocking = BOARD[position - 8] != PIECES.EMPTY? true: false;
+                whitePawnMoves = {
                     left: 0,
                     right: 0,
-                    up: 1,
+                    up: atWhiteStartRow? 2:1 && !wIsPieceBlocking? 1:0,
                     down: 0,
-                    upLeft: 0,
-                    upRight: 0,
+                    upLeft: wCanTakePieceLeft? 1:0,
+                    upRight: wCanTakePieceRight? 1:0,
                     downLeft: 0,
                     downRight: 0,
                 }
                 return whitePawnMoves;
 
             case PIECES.bP:
+                const atBlackStartRow = (position > 8 && position < 16)? true : false;
+                const bCanTakePieceLeft = (BOARD[position+7] > 0 && BOARD[position+7] < 7)? true: false;
+                const bCanTakePieceRight = (BOARD[position+7] > 0 && BOARD[position+9] < 7)? true: false;
+                const bIsPieceBlocking = BOARD[position + 8] != PIECES.EMPTY? true: false;
                 const blackPawnMoves = {
                     left: 0,
                     right: 0,
                     up: 0,
-                    down: 1,
+                    down: atBlackStartRow? 2:1 && !bIsPieceBlocking? 1:0,
                     upLeft: 0,
                     upRight: 0,
-                    downLeft: 0,
-                    downRight: 0,
+                    downLeft: bCanTakePieceLeft? 1:0,
+                    downRight: bCanTakePieceRight? 1:0,
                 }
                 return blackPawnMoves;
 
@@ -143,6 +180,7 @@ var ChessEngine = function () {
        
     }
 
+    // Function for generating the moves for the knight - unique movement so cannot be done the same as other pieces
     function generate_knight_moves(position, movementArray) {
         const moves = steps_to_borders(position);
 
@@ -191,6 +229,7 @@ var ChessEngine = function () {
         }
     }
 
+    // Function for generating the available moves in a specific direction - uses the check functions above
     function generate_sliding_moves(direction, position, movementArray, displacement) {
         let collisions = false;
         let isSamePiece = false;
@@ -207,16 +246,19 @@ var ChessEngine = function () {
         }
     }
 
+    // Combines all the movement functions to choose piece movement based on the piece at the given position
     function generate_all_moves(position) {
         const moves = check_piece_type(position);
         const movementArray = new Array(64).fill(0);
 
+
+        // Knight has unique movement so requires separate function
         if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
             generate_knight_moves(position, movementArray);    
         }
 
         else {
-            generate_sliding_moves(moves.left, position, movementArray, (-1));
+            generate_sliding_moves(moves.left, position, movementArray, -1);
             generate_sliding_moves(moves.right, position, movementArray, +1);
             generate_sliding_moves(moves.up, position, movementArray, -8);
             generate_sliding_moves(moves.down, position, movementArray, +8);
@@ -229,29 +271,7 @@ var ChessEngine = function () {
         return movementArray;
     }
 
-    function steps_to_borders(piecePosition) {
-        const left = piecePosition % 8;
-        const right = 7 - left;
-        const up = Math.floor(piecePosition / 8);
-        const down = 7 - up;
-        const upLeft = Math.min(up, left);
-        const upRight = Math.min(up, right);
-        const downLeft = Math.min(down, left);
-        const downRight = Math.min(down, right);
-        
-        const moves = {
-            left: left,
-            right: right,
-            up: up,
-            down: down,
-            upLeft: upLeft,
-            upRight: upRight,
-            downLeft: downLeft,
-            downRight: downRight,
-        }
-        
-        return moves;
-    }
+    
   
     return {
         board: BOARD,
