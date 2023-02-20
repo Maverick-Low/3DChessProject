@@ -115,9 +115,9 @@ var ChessEngine = function () {
                 return whitePawnMoves;
 
             case PIECES.bP:
-                const atBlackStartRow = (position > 8 && position < 16)? true : false;
+                const atBlackStartRow = (position > 7 && position < 16)? true : false;
                 const bCanTakePieceLeft = (BOARD[position+7] > 0 && BOARD[position+7] < 7)? true: false;
-                const bCanTakePieceRight = (BOARD[position+7] > 0 && BOARD[position+9] < 7)? true: false;
+                const bCanTakePieceRight = (BOARD[position+9] > 0 && BOARD[position+9] < 7)? true: false;
                 const bIsPieceBlocking = BOARD[position + 8] != PIECES.EMPTY? true: false;
                 const blackPawnMoves = {
                     left: 0,
@@ -185,10 +185,10 @@ var ChessEngine = function () {
         const moves = steps_to_borders(position);
 
         const isSamePiece = {
-            topLeft: true,
-            topRight: true,
-            bottomLeft: true,
-            bottomRight: true,
+            topLeft: false,
+            topRight: false,
+            bottomLeft: false,
+            bottomRight: false,
         }
 
         for(let i = 1; i <= 2; i++) {
@@ -200,14 +200,14 @@ var ChessEngine = function () {
                 isSamePiece.topRight = check_same_piece(position, rightSide - 16);
                 isSamePiece.bottomLeft = check_same_piece(position, leftSide + 16);
                 isSamePiece.bottomRight = check_same_piece(position, rightSide + 16);
-
+                
                 if(i <= moves.left) {
-                    movementArray[leftSide - 16] = i <= moves.up && !isSamePiece.topLeft? 1 : 0;   
-                    movementArray[leftSide + 16] = i <= moves.down && !isSamePiece.bottomLeft? 1 : 0;
+                    movementArray[leftSide - 16] = !isSamePiece.topLeft? 1 : 0;   
+                    movementArray[leftSide + 16] = !isSamePiece.bottomLeft? 1 : 0;
                 }
                 if(i <= moves.right) {
-                    movementArray[rightSide - 16] = i <= moves.up && !isSamePiece.topRight? 1 : 0;   
-                    movementArray[rightSide + 16] = i <= moves.down && !isSamePiece.bottomRight? 1 : 0;
+                    movementArray[rightSide - 16] = !isSamePiece.topRight? 1 : 0;   
+                    movementArray[rightSide + 16] = !isSamePiece.bottomRight? 1 : 0;
                 }
             } 
 
@@ -216,14 +216,13 @@ var ChessEngine = function () {
                 isSamePiece.topRight = check_same_piece(position, rightSide - 8);
                 isSamePiece.bottomLeft = check_same_piece(position, leftSide + 8);
                 isSamePiece.bottomRight = check_same_piece(position, rightSide + 8);
-
                 if(i <= moves.left) {
-                    movementArray[leftSide - 8] = i <= moves.up && !isSamePiece.topLeft? 1 : 0;   
-                    movementArray[leftSide + 8] = i <= moves.down && !isSamePiece.bottomLeft? 1 : 0;
+                    movementArray[leftSide - 8] = !isSamePiece.topLeft? 1 : 0;  
+                    movementArray[leftSide + 8] = !isSamePiece.bottomLeft? 1 : 0;
                 }
                 if(i <= moves.right) {
-                    movementArray[rightSide - 8] = i <= moves.up && !isSamePiece.topRight? 1 : 0;   
-                    movementArray[rightSide + 8] = i <= moves.down && !isSamePiece.bottomRight? 1 : 0 ;
+                    movementArray[rightSide - 8] = !isSamePiece.topRight? 1 : 0;   
+                    movementArray[rightSide + 8] = !isSamePiece.bottomRight? 1 : 0 ;
                 }  
             }
         }
@@ -254,7 +253,7 @@ var ChessEngine = function () {
 
         // Knight has unique movement so requires separate function
         if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
-            generate_knight_moves(position, movementArray);    
+            generate_knight_moves(position, movementArray);   
         }
 
         else {
@@ -271,8 +270,6 @@ var ChessEngine = function () {
         return movementArray;
     }
 
-    
-  
     return {
         board: BOARD,
         isPiece: PIECES,
