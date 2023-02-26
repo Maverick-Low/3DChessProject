@@ -29,6 +29,8 @@ var ChessEngine = function () {
         'A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1',
     ]
     
+    var kingSelected = false;
+
     function update_board(oldPos, newPos) {
         const pieceMoved = BOARD[oldPos]; // BOARD[oldPos] = 1-12. E.g. BOARD[0] = 10 = White Rook
 
@@ -105,10 +107,10 @@ var ChessEngine = function () {
                 whitePawnMoves = {
                     left: 0,
                     right: 0,
-                    up: atWhiteStartRow? 2:1 && !wIsPieceBlocking? 1:0,
+                    up: (atWhiteStartRow && !kingSelected)? 2:1 && (!wIsPieceBlocking && !kingSelected)? 1:0,
                     down: 0,
-                    upLeft: wCanTakePieceLeft? 1:0,
-                    upRight: wCanTakePieceRight? 1:0,
+                    upLeft: (wCanTakePieceLeft || kingSelected) && moves.upLeft != 0? 1:0,
+                    upRight: (wCanTakePieceRight || kingSelected) && moves.upRight != 0? 1:0,
                     downLeft: 0,
                     downRight: 0,
                 }
@@ -123,11 +125,11 @@ var ChessEngine = function () {
                     left: 0,
                     right: 0,
                     up: 0,
-                    down: atBlackStartRow? 2:1 && !bIsPieceBlocking? 1:0,
+                    down: (atBlackStartRow && !kingSelected)? 2:1 && (!bIsPieceBlocking && !kingSelected)? 1:0,
                     upLeft: 0,
                     upRight: 0,
-                    downLeft: bCanTakePieceLeft? 1:0,
-                    downRight: bCanTakePieceRight? 1:0,
+                    downLeft: (bCanTakePieceLeft || kingSelected) && moves.downLeft != 0? 1:0,
+                    downRight: (bCanTakePieceRight || kingSelected) && moves.downRight != 0? 1:0,
                 }
                 return blackPawnMoves;
 
@@ -162,14 +164,14 @@ var ChessEngine = function () {
             case PIECES.wK:
             case PIECES.bK:   
                 const kingMoves = {
-                    left: 1,
-                    right: 1,
-                    up: 1,
-                    down: 1,
-                    upLeft: 1,
-                    upRight: 1,
-                    downLeft: 1,
-                    downRight: 1,
+                    left: moves.left == 0? 0:1,
+                    right: moves.right == 0? 0:1,
+                    up: moves.up == 0? 0:1,
+                    down: moves.down == 0? 0:1,
+                    upLeft: moves.upLeft == 0? 0:1,
+                    upRight: moves.upRight == 0? 0:1,
+                    downLeft: moves.downLeft == 0? 0:1,
+                    downRight: moves.downRight == 0? 0:1,
                 }
                 return kingMoves;
             default:
@@ -202,12 +204,12 @@ var ChessEngine = function () {
                 isSamePiece.bottomRight = check_same_piece(position, rightSide + 16);
                 
                 if(i <= moves.left) {
-                    movementArray[leftSide - 16] = !isSamePiece.topLeft? 1 : 0;   
-                    movementArray[leftSide + 16] = !isSamePiece.bottomLeft? 1 : 0;
+                    movementArray[leftSide - 16] = !isSamePiece.topLeft? 1 : 2;   
+                    movementArray[leftSide + 16] = !isSamePiece.bottomLeft? 1 : 2;
                 }
                 if(i <= moves.right) {
-                    movementArray[rightSide - 16] = !isSamePiece.topRight? 1 : 0;   
-                    movementArray[rightSide + 16] = !isSamePiece.bottomRight? 1 : 0;
+                    movementArray[rightSide - 16] = !isSamePiece.topRight? 1 : 2;   
+                    movementArray[rightSide + 16] = !isSamePiece.bottomRight? 1 : 2;
                 }
             } 
 
@@ -217,12 +219,12 @@ var ChessEngine = function () {
                 isSamePiece.bottomLeft = check_same_piece(position, leftSide + 8);
                 isSamePiece.bottomRight = check_same_piece(position, rightSide + 8);
                 if(i <= moves.left) {
-                    movementArray[leftSide - 8] = !isSamePiece.topLeft? 1 : 0;  
-                    movementArray[leftSide + 8] = !isSamePiece.bottomLeft? 1 : 0;
+                    movementArray[leftSide - 8] = !isSamePiece.topLeft? 1 : 2;  
+                    movementArray[leftSide + 8] = !isSamePiece.bottomLeft? 1 : 2;
                 }
                 if(i <= moves.right) {
-                    movementArray[rightSide - 8] = !isSamePiece.topRight? 1 : 0;   
-                    movementArray[rightSide + 8] = !isSamePiece.bottomRight? 1 : 0 ;
+                    movementArray[rightSide - 8] = !isSamePiece.topRight? 1 : 2;   
+                    movementArray[rightSide + 8] = !isSamePiece.bottomRight? 1 : 2;
                 }  
             }
         }
@@ -238,33 +240,83 @@ var ChessEngine = function () {
                 isSamePiece = check_same_piece(position, position + (i * displacement));
             }
 
-            if(i <= direction && !collisions && !isSamePiece) {     
-                movementArray[position + (i* displacement)] = 1;
+            if(i <= direction && !collisions) {     
+                movementArray[position + (i* displacement)] =  !isSamePiece? 1:2;
                 collisions = check_piece_collision(position + (i * displacement));
             }
         }
     }
 
+    function generate_all_sliding_moves(position, movementArray){
+        const moves = check_piece_type(position);
+
+        generate_sliding_moves(moves.left, position, movementArray, -1);
+        generate_sliding_moves(moves.right, position, movementArray, +1);
+        generate_sliding_moves(moves.up, position, movementArray, -8);
+        generate_sliding_moves(moves.down, position, movementArray, +8);
+        generate_sliding_moves(moves.upLeft, position, movementArray, -9);
+        generate_sliding_moves(moves.upRight, position, movementArray, -7);
+        generate_sliding_moves(moves.downLeft, position, movementArray, +7);
+        generate_sliding_moves(moves.downRight, position, movementArray, +9);
+    }
+
+    function generate_king_moves(position, movementArray) {
+        kingSelected = true;
+        const king = BOARD[position];
+        const kingMovementArray = new Array(64).fill(0);
+
+        // King's pseudolegal moves (with no checks for checking)
+        generate_all_sliding_moves(position, movementArray);
+
+        // Creates an array of positions that are illegal for the king to move to
+        for(let i = 0; i < 64; i++) {
+            const pieceIsWhite = (BOARD[i] >= 1 && BOARD[i] <= 6);
+            const pieceIsBlack = (BOARD[i] >= 7 && BOARD[i] <= 12); 
+
+            if(king == PIECES.wK && pieceIsBlack) {
+                if(BOARD[i] == PIECES.bN) {
+                    generate_knight_moves(i, kingMovementArray);
+                }
+                else {
+                    generate_all_sliding_moves(i, kingMovementArray);
+                }
+            }
+
+            else if(king == PIECES.bK && pieceIsWhite) {
+                if(BOARD[i] == PIECES.wN) {
+                    generate_knight_moves(i, kingMovementArray);
+                }
+                else {
+                    generate_all_sliding_moves(i, kingMovementArray);
+                }
+            } 
+        }
+
+        // Compares king's movement array with the array of illegal positions - movement array only left with legal moves
+        for(let i = 0; i < 64; i++) {   
+            if(movementArray[i] == kingMovementArray[i] || kingMovementArray[i] == 2){
+                movementArray[i] = 0;
+            }
+        }
+
+        kingSelected = false;
+    }
+
     // Combines all the movement functions to choose piece movement based on the piece at the given position
     function generate_all_moves(position) {
-        const moves = check_piece_type(position);
         const movementArray = new Array(64).fill(0);
-
 
         // Knight has unique movement so requires separate function
         if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
             generate_knight_moves(position, movementArray);   
         }
 
+        else if(BOARD[position] == PIECES.wK || BOARD[position] == PIECES.bK ) {
+            generate_king_moves(position, movementArray);   
+        }
+
         else {
-            generate_sliding_moves(moves.left, position, movementArray, -1);
-            generate_sliding_moves(moves.right, position, movementArray, +1);
-            generate_sliding_moves(moves.up, position, movementArray, -8);
-            generate_sliding_moves(moves.down, position, movementArray, +8);
-            generate_sliding_moves(moves.upLeft, position, movementArray, -9);
-            generate_sliding_moves(moves.upRight, position, movementArray, -7);
-            generate_sliding_moves(moves.downLeft, position, movementArray, +7);
-            generate_sliding_moves(moves.downRight, position, movementArray, +9);
+            generate_all_sliding_moves(position, movementArray);
         }
 
         return movementArray;

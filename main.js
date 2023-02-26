@@ -225,7 +225,7 @@ function move_mouse( event ) {
     mouse.y = - ( event.clientY / container.clientHeight ) * 2 + 1;
 }
 
-// Hover over pieces highlights them
+// Hovering over pieces highlights them
 function highlight_piece(){
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
@@ -342,7 +342,9 @@ function highlight_tiles(array) {
         const tile = board.children.find((child) => child.userData.squareNumber == i)
         
         if(array[i-1] === 1) {
-            const highlight = new THREE.MeshBasicMaterial({color: 0xf0f446});
+            const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
+            const greenHighlight = new THREE.MeshBasicMaterial({color: 0x5fd64e});
+            const highlight = Chess.board[i-1] != Chess.isPiece.EMPTY? redHighlight: greenHighlight;
             tile.material = highlight;
             tile.material.transparent = true;
             tile.material.opacity = 0.5;
