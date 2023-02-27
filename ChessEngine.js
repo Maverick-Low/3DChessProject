@@ -263,7 +263,7 @@ var ChessEngine = function () {
     function generate_king_moves(position, movementArray) {
         kingSelected = true;
         const king = BOARD[position];
-        const kingMovementArray = new Array(64).fill(0);
+        const illegalMovesArray = new Array(64).fill(0);
 
         // King's pseudolegal moves (with no checks for checking)
         generate_all_sliding_moves(position, movementArray);
@@ -275,31 +275,69 @@ var ChessEngine = function () {
 
             if(king == PIECES.wK && pieceIsBlack) {
                 if(BOARD[i] == PIECES.bN) {
-                    generate_knight_moves(i, kingMovementArray);
+                    generate_knight_moves(i, illegalMovesArray);
                 }
                 else {
-                    generate_all_sliding_moves(i, kingMovementArray);
+                    generate_all_sliding_moves(i, illegalMovesArray);
                 }
             }
 
             else if(king == PIECES.bK && pieceIsWhite) {
                 if(BOARD[i] == PIECES.wN) {
-                    generate_knight_moves(i, kingMovementArray);
+                    generate_knight_moves(i, illegalMovesArray);
                 }
                 else {
-                    generate_all_sliding_moves(i, kingMovementArray);
+                    generate_all_sliding_moves(i, illegalMovesArray);
                 }
             } 
         }
 
         // Compares king's movement array with the array of illegal positions - movement array only left with legal moves
         for(let i = 0; i < 64; i++) {   
-            if(movementArray[i] == kingMovementArray[i] || kingMovementArray[i] == 2){
+            if(movementArray[i] == illegalMovesArray[i] || illegalMovesArray[i] == 2){
                 movementArray[i] = 0;
             }
         }
 
         kingSelected = false;
+    }
+
+    function isKingInCheck(position) {
+        kingSelected = true;
+        const king = BOARD[position];
+        const illegalMovesArray = new Array(64).fill(0);
+
+        for(let i = 0; i < 64; i++) {
+            const pieceIsWhite = (BOARD[i] >= 1 && BOARD[i] <= 6);
+            const pieceIsBlack = (BOARD[i] >= 7 && BOARD[i] <= 12); 
+
+            if(king == PIECES.wK && pieceIsBlack) {
+                if(BOARD[i] == PIECES.bN) {
+                    generate_knight_moves(i, illegalMovesArray);
+                }
+                else {
+                    generate_all_sliding_moves(i, illegalMovesArray);
+                }
+            }
+
+            else if(king == PIECES.bK && pieceIsWhite) {
+                if(BOARD[i] == PIECES.wN) {
+                    generate_knight_moves(i, illegalMovesArray);
+                }
+                else {
+                    generate_all_sliding_moves(i, illegalMovesArray);
+                }
+            } 
+        }
+        kingSelected = false;
+          
+        if(illegalMovesArray[position] == 1){
+            return true;
+        }
+        else {
+            return false;
+        }
+
     }
 
     // Combines all the movement functions to choose piece movement based on the piece at the given position
@@ -328,6 +366,7 @@ var ChessEngine = function () {
         update_board: update_board,
         valid_move: valid_move,
         generate_moves: generate_all_moves,
+        isKingInCheck: isKingInCheck,
     }
 }
 

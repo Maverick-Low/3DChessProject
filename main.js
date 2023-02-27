@@ -2,8 +2,8 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selected = null;
-var lengthToPiece, blackTaken = 0, whiteTaken = 0;
+var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster;
+var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null;
 var fileName = '/assets/models/ChessSet-Normal-1.glb';
 
 async function init() {
@@ -274,13 +274,30 @@ function reset_piece_materials() {
 function move_piece(event) {
     raycaster.setFromCamera(mouse, camera);
     let intersects = raycaster.intersectObjects(scene.children);
-    let selectedPiece, oldArrayPos;
+
+    
 
     // Get the selected piece
     if(!selected && intersects.length > 0) {
+        const {whiteKingBoardPos, blackKingBoardPos} = get_king_position();
+        if(Chess.isKingInCheck(whiteKingBoardPos-1) || Chess.isKingInCheck(blackKingBoardPos-1)) {
+            const kingBoardPos = Chess.isKingInCheck(whiteKingBoardPos-1)? whiteKingBoardPos: blackKingBoardPos;
+            const tile = board.children.find((child) => child.userData.squareNumber == kingBoardPos);
+            const highlightedTiles = Chess.generate_moves(kingBoardPos-1);
+            const highlight = new THREE.MeshBasicMaterial({color: 0xf72626});
+            selected = kingBoardPos;
+
+            highlight_tiles(highlightedTiles);
+            tile.material = highlight;
+            tile.material.transparent = true;
+            tile.material.opacity = 0.5;
+
+        return;
+    }
+        
         selected = intersects[lengthToPiece].object.userData.currentSquare;
-        selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
-        oldArrayPos = selectedPiece.userData.currentSquare; 
+        const selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
+        const oldArrayPos = selectedPiece.userData.currentSquare; 
         const highlightedTiles = Chess.generate_moves(oldArrayPos-1);
         highlight_tiles(highlightedTiles);
         return;
@@ -288,12 +305,13 @@ function move_piece(event) {
 
     // Move the piece onto the target location on the board
     if(selected && intersects.length > 0) {
+        
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
         reset_tile_materials();
 
-        selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
-        oldArrayPos = selectedPiece.userData.currentSquare; 
+        const selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
+        const oldArrayPos = selectedPiece.userData.currentSquare; 
         const newArrayPos = intersects[0].object.userData.squareNumber; 
         const targetPosition = find_tile_position(newArrayPos);
         const pieceAtTarget = scene.children.find((child) => child.userData.currentSquare == newArrayPos);
@@ -315,26 +333,24 @@ function move_piece(event) {
                 pieceAtTarget.userData.currentSquare = null;
                 pieceAtTarget.userData.taken = true;
             }
+
             selectedPiece.position.set(targetPosition.x, selectedPiece.position.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newArrayPos;
             Chess.update_board(oldArrayPos-1, newArrayPos-1);
         }
         selected = null;
-
-            // Chess.generate_moves(newArrayPos-1);
-            // console.log('tileHasPiece:', tileHasPiece);
-            // console.log('selectedPiece:', selectedPiece.name);
-            // console.log('pieceAtTarget:', pieceAtTarget.name);
-            // const rightSteps = Chess.steps_to_borders(newArrayPos-1);
-            // console.log('Steps:',rightSteps);
-            // console.log('oldArrayPos: ', oldArrayPos);
-            // console.log('newArrayPos: ', newArrayPos);
-            // if(pieceAtTarget) {
-            //     console.log(pieceAtTarget.name);
-            //     console.log(pieceAtTarget.userData.taken);
-            // }
-            
     }
+}
+
+// Returns the position of the kings on the board (1-64)
+function get_king_position() {
+    const whiteKing = scene.children.find((child) => child.userData.name == "whiteKing");
+    const blackKing = scene.children.find((child) => child.userData.name == "blackKing");
+
+    const whiteKingBoardPos = whiteKing.userData.currentSquare;
+    const blackKingBoardPos = blackKing.userData.currentSquare;
+
+    return {whiteKingBoardPos, blackKingBoardPos};
 }
 
 function highlight_tiles(array) {
@@ -372,7 +388,8 @@ function reset_tile_materials() {
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-        console.log(Chess.board);
+        // console.log(Chess.board);
+        get_king_position();
     }
 }
 
