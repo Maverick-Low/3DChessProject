@@ -1,4 +1,3 @@
-
 var ChessEngine = function () {
 
     var PIECES = {
@@ -104,10 +103,11 @@ var ChessEngine = function () {
                 const wCanTakePieceLeft = BOARD[position-9] >= 7? true: false;
                 const wCanTakePieceRight = BOARD[position-7] >= 7? true: false;
                 const wIsPieceBlocking = BOARD[position - 8] != PIECES.EMPTY? true: false;
+                const wIsPieceBlockingStart = BOARD[position - 16] != PIECES.EMPTY? true: false;
                 whitePawnMoves = {
                     left: 0,
                     right: 0,
-                    up: (atWhiteStartRow && !kingSelected)? 2:1 && (!wIsPieceBlocking && !kingSelected)? 1:0,
+                    up: (!wIsPieceBlockingStart && !kingSelected)? 2:0 && (atWhiteStartRow && !kingSelected)? 2:1 && (!wIsPieceBlocking && !kingSelected)? 1:0,
                     down: 0,
                     upLeft: (wCanTakePieceLeft || kingSelected) && moves.upLeft != 0? 1:0,
                     upRight: (wCanTakePieceRight || kingSelected) && moves.upRight != 0? 1:0,
@@ -121,11 +121,12 @@ var ChessEngine = function () {
                 const bCanTakePieceLeft = (BOARD[position+7] > 0 && BOARD[position+7] < 7)? true: false;
                 const bCanTakePieceRight = (BOARD[position+9] > 0 && BOARD[position+9] < 7)? true: false;
                 const bIsPieceBlocking = BOARD[position + 8] != PIECES.EMPTY? true: false;
+                const bIsPieceBlockingStart = BOARD[position + 16] != PIECES.EMPTY? true: false;
                 const blackPawnMoves = {
                     left: 0,
                     right: 0,
                     up: 0,
-                    down: (atBlackStartRow && !kingSelected)? 2:1 && (!bIsPieceBlocking && !kingSelected)? 1:0,
+                    down: (!bIsPieceBlockingStart && !kingSelected)? 2:0 && (atBlackStartRow && !kingSelected)? 2:1 && (!bIsPieceBlocking && !kingSelected)? 1:0,
                     upLeft: 0,
                     upRight: 0,
                     downLeft: (bCanTakePieceLeft || kingSelected) && moves.downLeft != 0? 1:0,
