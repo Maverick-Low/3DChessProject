@@ -29,12 +29,13 @@ var ChessEngine = function () {
     ]
     
     var kingSelected = false;
+    var pieceMoved = null;
 
     function update_board(oldPos, newPos) {
-        const pieceMoved = BOARD[oldPos]; // BOARD[oldPos] = 1-12. E.g. BOARD[0] = 10 = White Rook
-
+        pieceMoved = BOARD[oldPos]; // BOARD[oldPos] = 1-12. E.g. BOARD[0] = 10 = White Rook
         BOARD[oldPos] = 0; // Piece has left this position so it is empty
         BOARD[newPos] = pieceMoved; // Replace value in this position to the pieceMoved. E.g. White rook now in BOARD[newPos]
+        console.log(pieceMoved);
     }
 
     // Checks if move is in the movement array and that the new position is either empty or an enemy's piece
@@ -79,6 +80,14 @@ var ChessEngine = function () {
     function check_piece_collision(position) {
         let collision = false;
         if(BOARD[position] != PIECES.EMPTY) {
+            collision = true;
+        }
+        return collision;
+    }
+
+    function check_king_collision(position) {
+        let collision = false;
+        if(BOARD[position] == PIECES.bK || BOARD[position] == PIECES.wK)  {
             collision = true;
         }
         return collision;
@@ -235,15 +244,23 @@ var ChessEngine = function () {
     function generate_sliding_moves(direction, position, movementArray, displacement) {
         let collisions = false;
         let isSamePiece = false;
+        let kingCollision = false;
         
         for(let i = 1; i <= direction; i++) {
             if(!isSamePiece) {
                 isSamePiece = check_same_piece(position, position + (i * displacement));
             }
 
-            if(i <= direction && !collisions) {     
-                movementArray[position + (i* displacement)] =  !isSamePiece? 1:2;
-                collisions = check_piece_collision(position + (i * displacement));
+            if(i <= direction) { 
+                if(!collisions) {
+                    movementArray[position + (i* displacement)] =  !isSamePiece? 1:2;
+                    collisions = check_piece_collision(position + (i * displacement));
+                }
+
+                kingCollision = check_king_collision(position + (i * displacement));
+                if(kingCollision) {
+                    movementArray[position + ((i+1)* displacement)] = 3;
+                }
             }
         }
     }
@@ -295,7 +312,7 @@ var ChessEngine = function () {
 
         // Compares king's movement array with the array of illegal positions - movement array only left with legal moves
         for(let i = 0; i < 64; i++) {   
-            if(movementArray[i] == illegalMovesArray[i] || illegalMovesArray[i] == 2){
+            if(movementArray[i] == illegalMovesArray[i] || illegalMovesArray[i] >= 2){
                 movementArray[i] = 0;
             }
         }
@@ -341,23 +358,52 @@ var ChessEngine = function () {
 
     }
 
+    function get_king_position() {
+        let whiteKingPos, blackKingPos;
+        for(let i = 0; i < 64; i++){
+            if(BOARD[i] == PIECES.wK) {
+                whiteKingPos = i;
+            }
+
+            if(BOARD[i] == PIECES.bK) {
+                blackKingPos = i;
+            }
+        }
+        return {whiteKingPos, blackKingPos}
+    }
+
     // Combines all the movement functions to choose piece movement based on the piece at the given position
     function generate_all_moves(position) {
         const movementArray = new Array(64).fill(0);
+        const {whiteKingPos, blackKingPos} = get_king_position();
+        
+        if(isKingInCheck(whiteKingPos) || isKingInCheck(blackKingPos)) {
+            if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
+                generate_knight_moves(position, movementArray);   
+            }
 
-        // Knight has unique movement so requires separate function
-        if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
-            generate_knight_moves(position, movementArray);   
-        }
+            else if(BOARD[position] == PIECES.wK || BOARD[position] == PIECES.bK ) {
+                generate_king_moves(position, movementArray);   
+            }
 
-        else if(BOARD[position] == PIECES.wK || BOARD[position] == PIECES.bK ) {
-            generate_king_moves(position, movementArray);   
+            else {
+                generate_all_sliding_moves(position, movementArray);
+            }
         }
 
         else {
-            generate_all_sliding_moves(position, movementArray);
-        }
+            if(BOARD[position] == PIECES.wN || BOARD[position] == PIECES.bN ) {
+                generate_knight_moves(position, movementArray);   
+            }
 
+            else if(BOARD[position] == PIECES.wK || BOARD[position] == PIECES.bK ) {
+                generate_king_moves(position, movementArray);   
+            }
+
+            else {
+                generate_all_sliding_moves(position, movementArray);
+            }
+        }
         return movementArray;
     }
 
