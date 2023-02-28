@@ -2,9 +2,13 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-var scene, camera, renderer, controls, container, Chess, board, mouse, raycaster, selected = null;
-var lengthToPiece, blackTaken = 0, whiteTaken = 0;
+import ChessEngine from './ChessEngine';
+var scene, camera, renderer, controls, container, mouse, raycaster;
+var Chess, board;
+var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;
 var fileName = '/assets/models/ChessSet-Normal-1.glb';
+var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
+var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
 
 async function init() {
     // Scene
@@ -65,8 +69,6 @@ async function init() {
  
 function create_board() {
     const tileGeometry = new THREE.PlaneGeometry(1, 1);
-    const lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
-    const darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
     let tile;
     let squareNumber = 1;
     board = new THREE.Group();
@@ -98,6 +100,7 @@ function animate() {
     highlight_piece();
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
+    highlight_kings_tile();
 }
 
 function resize_window(container, camera, renderer) {
@@ -132,10 +135,9 @@ async function fill_board() {
     const chessMesh = await loader.loadAsync(fileName);
     const mesh = chessMesh.scene;
     let piece;
-
     for(let i = 1; i < 65; i++){
         const tilePos = find_tile_position(i); // The position of each piece on the board
-        switch(Chess.board[i-1]){
+        switch(Chess.BOARD[i-1].symbol){
 
             // Black pieces
             case Chess.isPiece.bR:
@@ -226,7 +228,7 @@ function move_mouse( event ) {
 }
 
 // Hovering over pieces highlights them
-function highlight_piece(){
+function highlight_piece(){ 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children);
     let isWhite, isBlack;
@@ -247,12 +249,19 @@ function highlight_piece(){
 
         if( intersects.length > 0 && (isBlack || isWhite)) {
             const object = intersects[lengthToPiece].object;
-            const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
-            const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
-    
-            object.material = object.name.includes('black') ? darkMaterial: lightMaterial;
-            object.material.transparent = true;
-            object.material.opacity = 0.5;
+            if(isWhite && whitesTurn) {
+                const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                object.material = lightMaterial;
+                object.material.transparent = true;
+                object.material.opacity = 0.5;  
+            }
+            else if(isBlack && !whitesTurn){
+                const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+                object.material =  darkMaterial;
+                object.material.transparent = true;
+                object.material.opacity = 0.5;
+            }
+            
         }
     }
 }
@@ -273,27 +282,56 @@ function reset_piece_materials() {
 // Function to: on first click: select a piece | on second click: Move piece to location
 function move_piece(event) {
     raycaster.setFromCamera(mouse, camera);
+    let selectedPiece;
     let intersects = raycaster.intersectObjects(scene.children);
-    let selectedPiece, oldArrayPos;
-
     // Get the selected piece
     if(!selected && intersects.length > 0) {
+        // const {whiteKingBoardPos, blackKingBoardPos} = get_king_position();
+
+        // if(Chess.isKingInCheck(whiteKingBoardPos-1) || Chess.isKingInCheck(blackKingBoardPos-1)) {
+        //     const kingBoardPos = Chess.isKingInCheck(whiteKingBoardPos-1)? whiteKingBoardPos: blackKingBoardPos;
+        //     const tile = board.children.find((child) => child.userData.squareNumber == kingBoardPos);
+        //     const highlightedTiles = Chess.generate_moves(kingBoardPos-1);
+        //     const highlight = new THREE.MeshBasicMaterial({color: 0xf72626});
+        //     // selected = kingBoardPos;
+
+        //     highlight_tiles(highlightedTiles);
+        //     tile.material = highlight;
+        //     tile.material.transparent = true;
+        //     tile.material.opacity = 0.5;
+
+        //     return;
+        // }
+        
+        
         selected = intersects[lengthToPiece].object.userData.currentSquare;
         selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
-        oldArrayPos = selectedPiece.userData.currentSquare; 
-        const highlightedTiles = Chess.generate_moves(oldArrayPos-1);
-        highlight_tiles(highlightedTiles);
+        
+        // Alternates moves
+        if( (whitesTurn && !selectedPiece.name.includes('white')) ||  (!whitesTurn && !selectedPiece.name.includes('black')) ){
+            selected = null;
+            selectedPiece = null;
+        }
+        
+        if(selectedPiece) {
+            const oldArrayPos = selectedPiece.userData.currentSquare; 
+            const highlightedTiles = Chess.generate_moves(oldArrayPos-1);
+            highlight_tiles(highlightedTiles);
+        }
+        
+        
         return;
     }
 
     // Move the piece onto the target location on the board
     if(selected && intersects.length > 0) {
+        
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
         reset_tile_materials();
 
-        selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
-        oldArrayPos = selectedPiece.userData.currentSquare; 
+        const selectedPiece = scene.children.find((child) => child.userData.currentSquare == selected);
+        const oldArrayPos = selectedPiece.userData.currentSquare; 
         const newArrayPos = intersects[0].object.userData.squareNumber; 
         const targetPosition = find_tile_position(newArrayPos);
         const pieceAtTarget = scene.children.find((child) => child.userData.currentSquare == newArrayPos);
@@ -315,36 +353,44 @@ function move_piece(event) {
                 pieceAtTarget.userData.currentSquare = null;
                 pieceAtTarget.userData.taken = true;
             }
+
             selectedPiece.position.set(targetPosition.x, selectedPiece.position.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newArrayPos;
             Chess.update_board(oldArrayPos-1, newArrayPos-1);
+            whitesTurn = !whitesTurn;
         }
         selected = null;
-
-            // Chess.generate_moves(newArrayPos-1);
-            // console.log('tileHasPiece:', tileHasPiece);
-            // console.log('selectedPiece:', selectedPiece.name);
-            // console.log('pieceAtTarget:', pieceAtTarget.name);
-            // const rightSteps = Chess.steps_to_borders(newArrayPos-1);
-            // console.log('Steps:',rightSteps);
-            // console.log('oldArrayPos: ', oldArrayPos);
-            // console.log('newArrayPos: ', newArrayPos);
-            // if(pieceAtTarget) {
-            //     console.log(pieceAtTarget.name);
-            //     console.log(pieceAtTarget.userData.taken);
-            // }
-            
+        
     }
+}
+
+// Returns the position of the kings on the board (1-64)
+function get_king_position() {
+    let whiteKingBoardPos;
+    let blackKingBoardPos;
+
+    const whiteKing = scene.children.find((child) => child.userData.name == "whiteKing");
+    const blackKing = scene.children.find((child) => child.userData.name == "blackKing");
+
+    if(whiteKing) {
+        whiteKingBoardPos = whiteKing.userData.currentSquare;
+    }
+    if(blackKing) {
+        blackKingBoardPos = blackKing.userData.currentSquare;
+    }
+
+    return {whiteKingBoardPos, blackKingBoardPos};
 }
 
 function highlight_tiles(array) {
     for(let i = 1; i < 65; i++) {
+
         const tile = board.children.find((child) => child.userData.squareNumber == i)
         
         if(array[i-1] === 1) {
             const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
             const greenHighlight = new THREE.MeshBasicMaterial({color: 0x5fd64e});
-            const highlight = Chess.board[i-1] != Chess.isPiece.EMPTY? redHighlight: greenHighlight;
+            const highlight = Chess.BOARD[i-1] != Chess.isPiece.EMPTY? redHighlight: greenHighlight;
             tile.material = highlight;
             tile.material.transparent = true;
             tile.material.opacity = 0.5;
@@ -352,9 +398,27 @@ function highlight_tiles(array) {
     }
 }
 
+function highlight_kings_tile(){
+    const {whiteKingBoardPos, blackKingBoardPos} = get_king_position();
+    const whiteKingTile = board.children.find((child) => child.userData.squareNumber == whiteKingBoardPos);
+    const blackKingTile = board.children.find((child) => child.userData.squareNumber == blackKingBoardPos);
+    const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
+
+    if(Chess.isKingInCheck(whiteKingBoardPos-1)){
+        whiteKingTile.material = redHighlight;
+        whiteKingTile.material.transparent = true;
+        whiteKingTile.material.opacity = 0.5;
+    }
+
+    if(Chess.isKingInCheck(blackKingBoardPos-1)){
+        blackKingTile.material = redHighlight;
+        blackKingTile.material.transparent = true;
+        blackKingTile.material.opacity = 0.5;
+    }
+ 
+}
+
 function reset_tile_materials() {
-    const lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
-    const darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
             const tilePos = (x*8 + z);
@@ -367,13 +431,15 @@ function reset_tile_materials() {
             }
         }
     }
-}
+  }
 
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-        console.log(Chess.board);
+        console.log(Chess.BOARD);
+        // console.log(board2D.BOARD);
     }
+
 }
 
 
