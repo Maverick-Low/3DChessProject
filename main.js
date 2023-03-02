@@ -2,7 +2,7 @@ import './style.css'
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import ChessEngine from './ChessEngine';
+import ChessEngine from './ChessEngine/ChessEngine';
 var scene, camera, renderer, controls, container, mouse, raycaster;
 var Chess, board;
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;
