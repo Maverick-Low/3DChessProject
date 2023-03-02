@@ -1,4 +1,4 @@
-import Board from "./ChessEngine/Board";
+import Board from "./Board";
 
 export default class ChessEngine {
     
@@ -99,7 +99,7 @@ export default class ChessEngine {
         return moves;
     }
 
-    // Specifies the direction and length each piece can move
+    // Defines the length in each direction that each piece can move
     generate_directions(position) {
         const moves = this.steps_to_borders(position);
         const piece = this.BOARD[position].symbol;
@@ -107,14 +107,14 @@ export default class ChessEngine {
         switch(piece) {
             case this.isPiece.wP:
                 const atWhiteStartRow = (position > 47 && position < 56)? true : false;
-                const wCanTakePieceLeft = this.BOARD[position-9] >= 7? true: false;
-                const wCanTakePieceRight = this.BOARD[position-7] >= 7? true: false;
+                const wCanTakePieceLeft = this.BOARD[position-9] && this.BOARD[position-9].color == 'black'? true: false;
+                const wCanTakePieceRight = this.BOARD[position-7] && this.BOARD[position-7].color == 'black'? true: false;
                 const wIsPieceBlocking = this.BOARD[position - 8] != this.isPiece.EMPTY? true: false;
-                const wIsPieceBlockingStart = this.BOARD[position - 16] != this.isPiece.EMPTY? true: false;
+                const wIsPieceBlockingStart = this.BOARD[position - 16] != this.isPiece.EMPTY || this.BOARD[position - 8] != this.isPiece.EMPTY? true: false;
                 const whitePawnMoves = {
                     left: 0,
                     right: 0,
-                    up: (!wIsPieceBlockingStart && atWhiteStartRow && !this.kingSelected)? 2:1 && (!wIsPieceBlocking && !this.kingSelected)? 1:0,
+                    up: (atWhiteStartRow && !wIsPieceBlockingStart)? 2: !wIsPieceBlocking? 1 : 0,
                     down: 0,
                     upLeft: (wCanTakePieceLeft || this.kingSelected) && moves.upLeft != 0? 1:0,
                     upRight: (wCanTakePieceRight || this.kingSelected) && moves.upRight != 0? 1:0,
@@ -125,15 +125,15 @@ export default class ChessEngine {
 
             case this.isPiece.bP:
                 const atBlackStartRow = (position > 7 && position < 16)? true : false;
-                const bCanTakePieceLeft = (this.BOARD[position+7] > 0 && this.BOARD[position+7] < 7)? true: false;
-                const bCanTakePieceRight = (this.BOARD[position+9] > 0 && this.BOARD[position+9] < 7)? true: false;
+                const bCanTakePieceLeft = this.BOARD[position+7].color == 'white'? true: false;
+                const bCanTakePieceRight = this.BOARD[position+9].color == 'white'? true: false;
                 const bIsPieceBlocking = this.BOARD[position + 8] != this.isPiece.EMPTY? true: false;
-                const bIsPieceBlockingStart = this.BOARD[position + 16] != this.isPiece.EMPTY? true: false;
+                const bIsPieceBlockingStart = this.BOARD[position + 16] != this.isPiece.EMPTY || this.BOARD[position + 8] != this.isPiece.EMPTY? true: false;
                 const blackPawnMoves = {
                     left: 0,
                     right: 0,
                     up: 0,
-                    down: (!bIsPieceBlockingStart && atBlackStartRow && !this.kingSelected)? 2:1 && (!bIsPieceBlocking && !this.kingSelected)? 1:0,
+                    down: (atBlackStartRow && !bIsPieceBlockingStart)? 2: !bIsPieceBlocking? 1:0,
                     upLeft: 0,
                     upRight: 0,
                     downLeft: (bCanTakePieceLeft || this.kingSelected) && moves.downLeft != 0? 1:0,
