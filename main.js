@@ -255,6 +255,7 @@ function reset_piece_materials() {
     }
 }
 
+// Highlight tiles that are a valid move
 function highlight_tiles(tile) {
     const greenHighlight = new THREE.MeshBasicMaterial({color: 0x5fd64e});
     const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
@@ -262,9 +263,9 @@ function highlight_tiles(tile) {
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
            
-            const newPos =  retrieve_tile_from_position({x,z});
+            const newPos =  game.retrieve_tile_from_position(x,z);
             const tile3D = board.children.find((child) => (child.userData.squareNumber.x === x) && (child.userData.squareNumber.z === z));
-            const move = new Move(null, tile, newPos);
+            const move = new Move(game.currentTurn, tile, newPos);
             
             if(game.is_legal_move(move)) {
                 const highlight = newPos.piece? redHighlight: greenHighlight;
@@ -275,24 +276,9 @@ function highlight_tiles(tile) {
         }
     }
 
-    // for(let x = 0; x < 8; x++) {
-    //     for(let z = 0; z < 8; z++) {
-    //         isSameColour = false;
-    //         const newPos =  retrieve_tile_from_position({x,z});
-    //         const tile3D = board.children.find((child) => (child.userData.squareNumber.x === x) && (child.userData.squareNumber.z === z));
-    //         if(newPos.piece) {
-    //             isSameColour = tile.piece.color === newPos.piece.color? true:false;
-    //         }
+}
 
-    //         if(tile.piece.can_move(tile, newPos) && !isSameColour ) {
-    //             const highlight = newPos.piece? redHighlight: greenHighlight;
-    //             tile3D.material = highlight;
-    //             tile3D.material.transparent = true;
-    //             tile3D.material.opacity = 0.5;
-    //         }
-    //     }
-    }
-
+// Set tiles back to original material
 function reset_tile_materials() {
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
@@ -307,31 +293,21 @@ function reset_tile_materials() {
     }
 }
 
+// Highlight the tile the king is on if the king is checked
 function highlight_kings_tile(){
     const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
-    const wKing = game.get_king_position();
-    const kingIsChecked = game.king_is_checked(wKing);
-    const tile3D = board.children.find((child) => (child.userData.squareNumber.x === wKing.position.x) && (child.userData.squareNumber.z === wKing.position.y));
-   
-    if(kingIsChecked) {
+    const kings = game.get_king_positions();
+    const whiteKingIsChecked = game.king_is_checked(kings[0]);
+    const blackKingIsChecked = game.king_is_checked(kings[1]);
+    const kingInCheck = whiteKingIsChecked? kings[0] : kings[1];
+    const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
+
+    if(whiteKingIsChecked || blackKingIsChecked) {
         tile3D.material = redHighlight;
         tile3D.material.transparent = true;
         tile3D.opacity = 0.5;
     }
  
-}
-
-// --------------------------------------------- Functions for retrieving positions / objects from positions ----------------------------------------------------- //
-
-function retrieve_tile_from_position(position) {
-    for(let i = 0; i < 8; i++) {
-        const found = game.board[i].find(Tile => (Tile.position.x === position.x) && (Tile.position.y === position.z));
-        if(found) {
-            return found;
-        }
-    }
-    
-    return null;
 }
 
 // --------------------------------------------- Functions for selecting pieces ----------------------------------------------------- //
@@ -349,46 +325,23 @@ function move_piece() {
     let intersects = raycaster.intersectObjects(scene.children);
     // Get the selected piece
     if(!selected && intersects.length > 0) {
+        whitesTurn = game.currentTurn === game.players[0];
+        
         selected = intersects[lengthToPiece].object.userData.currentSquare;
+        
+        let selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
+
+        // Alternates moves
+        if ((whitesTurn && !selectedPiece.name.includes('white')) ||  (!whitesTurn && !selectedPiece.name.includes('black')) ){
+            selected = null;
+            selectedPiece = null;
+        }
 
         if(selected) {
-            const piece = retrieve_tile_from_position(selected);
+            const piece = game.retrieve_tile_from_position(selected.x, selected.z);
             highlight_tiles(piece);
         }
-        
-
-        
-        
-        // const {whiteKingBoardPos, blackKingBoardPos} = get_king_position();
-
-        // if(Chess.isKingInCheck(whiteKingBoardPos-1) || Chess.isKingInCheck(blackKingBoardPos-1)) {
-        //     const kingBoardPos = Chess.isKingInCheck(whiteKingBoardPos-1)? whiteKingBoardPos: blackKingBoardPos;
-        //     const tile = board.children.find((child) => child.userData.squareNumber === kingBoardPos);
-        //     const highlightedTiles = Chess.generate_moves(kingBoardPos-1);
-        //     const highlight = new THREE.MeshBasicMaterial({color: 0xf72626});
-        //     // selected = kingBoardPos;
-
-        //     highlight_tiles(highlightedTiles);
-        //     tile.material = highlight;
-        //     tile.material.transparent = true;
-        //     tile.material.opacity = 0.5;
-
-        //     return;
-        // }
-        
-        // Alternates moves
-        // if( (whitesTurn && !selectedPiece.name.includes('white')) ||  (!whitesTurn && !selectedPiece.name.includes('black')) ){
-        //     selected = null;
-        //     selectedPiece = null;
-        // }
-        
-        // if(selectedPiece) {
-        //     const oldArrayPos = selectedPiece.userData.currentSquare; 
-        //     const highlightedTiles = Chess.generate_moves(oldArrayPos-1);
-        //     highlight_tiles(highlightedTiles);
-        // }
-        
-        
+    
         return;
     }
 
@@ -407,12 +360,10 @@ function move_piece() {
         // Move in 2D
         const startPos = game.board[oldPos.x][oldPos.z];
         const endPos = game.board[newPos.x][newPos.z];
-        const move = new Move(game.players[0], startPos, endPos);
+        const move = new Move(game.currentTurn, startPos, endPos);
         const legalMove = game.is_legal_move(move);
 
-
         if(legalMove) {
-
             if(pieceAtTarget && pieceAtTarget.name.includes('black')) {
                 pieceAtTarget.position.set(-2,0,blackTaken);
                 pieceAtTarget.rotation.y = Math.PI/2;
@@ -440,6 +391,8 @@ function move_piece() {
             selectedPiece.userData.posZ = newPos.z;
 
             game.move_piece(move);
+            game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
+
 
             if(game.pawn_promotion(move)) {
                 const pieceName = selectedPiece.name.includes('white')? 'whiteQueen' : 'blackQueen';
@@ -448,70 +401,26 @@ function move_piece() {
                 scene.remove(selectedPiece);
                 customise_piece(pos, piece, {x: pos.z, z: pos.x});
             }
-
+           
             reset_tile_materials();
             selected = null;
             
         }
         
-    
-        // raycaster.setFromCamera(mouse, camera);
-        // intersects = raycaster.intersectObjects(board.children);
-        // reset_tile_materials();
-
-        // const selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
-        // const oldArrayPos = selectedPiece.userData.currentSquare; 
-        // const newArrayPos = intersects[0].object.userData.squareNumber; 
-        // const targetPosition = find_tile_position(newArrayPos);
-        // const pieceAtTarget = scene.children.find((child) => child.userData.currentSquare === newArrayPos);
-        // const validMove = Chess.valid_move(oldArrayPos-1, newArrayPos-1)
-
-        // if(validMove) {
-        //     if(pieceAtTarget && pieceAtTarget.name.includes('black')) {
-        //         pieceAtTarget.position.set(-2,0,blackTaken);
-        //         pieceAtTarget.rotation.y = Math.PI/2;
-        //         blackTaken++;
-        //         pieceAtTarget.userData.currentSquare = null;
-        //         pieceAtTarget.userData.taken = true;
-        //     }
-
-        //     else if(pieceAtTarget && pieceAtTarget.name.includes('white')) {
-        //         pieceAtTarget.position.set(9,0,whiteTaken);
-        //         pieceAtTarget.rotation.y = Math.PI/-2;
-        //         whiteTaken++;
-        //         pieceAtTarget.userData.currentSquare = null;
-        //         pieceAtTarget.userData.taken = true;
-        //     }
-
-        //     selectedPiece.position.set(targetPosition.x, selectedPiece.position.y, targetPosition.z);
-        //     selectedPiece.userData.currentSquare = newArrayPos;
-        //     Chess.update_board(oldArrayPos-1, newArrayPos-1);
-        //     whitesTurn = !whitesTurn;
-        // }
-        // selected = null;
-        
+        game.is_king_checkmated();
     }
 }
 
-async function print_board(event) {
+function deselect_piece() {
+    selected = null;
+    reset_tile_materials();
+}
+
+function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-
-        // const loader = new GLTFLoader();
-        // const chessMesh = await loader.loadAsync(fileName);
-        // const mesh = chessMesh.scene;
-        // const selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
-        // const pos = selectedPiece.position;
-        // const piece = mesh.children.find((child) => child.name === 'blackQueen').clone(true);
-        // piece.position.set(pos.x, pos.y, pos.z);
-        // console.log(pos);
-
         console.log(game.board);
-        
-        // scene.remove(selectedPiece);
-        // scene.add(piece);
     }
-
 }
 
 function test(event) {
@@ -523,10 +432,7 @@ function test(event) {
     }
 }
 
-function deselect_piece() {
-    selected = null;
-    reset_tile_materials();
-}
+
 
 // Current Main
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
