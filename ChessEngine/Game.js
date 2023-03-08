@@ -23,6 +23,8 @@ export class Game {
         stalemate: 4,
     }
 
+    // --------------------------------------------- Functions for initialising game  ----------------------------------------------------- //
+
     create_two_players() {
         const players = new Array(2);
         players[0] = new Player(true);
@@ -53,6 +55,8 @@ export class Game {
         }
         return pieceSet;
     }
+
+    // --------------------------------------------- Functions for updating the game  ----------------------------------------------------- //
 
     move_piece(move) {
         const piece = move.pieceMoved;
@@ -85,25 +89,7 @@ export class Game {
         pieceSet[index] = newTile;
     }
 
-    valid_move(move) {
-        const canMove = move.startPos.piece.can_move(move.startPos, move.endPos);
-        const isEmpty = !move.endPos.piece;
-        const correctTurn = move.player === this.currentTurn? true : false;
-
-        let isSameColor = false;
-        let isBlocked = this.is_blocked(move);
-        
-        if(!isEmpty) {
-            isSameColor = move.startPos.piece.color == move.endPos.piece.color? true: false;
-        }
-
-
-        if((isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn) {
-            return true;
-        }
-
-        return false;
-    }
+    // --------------------------------------------- Functions for movement validation  ----------------------------------------------------- //
 
     is_blocked(move) {
         const startX = move.startPos.position.x;
@@ -195,71 +181,26 @@ export class Game {
         return false;
     }
 
-    pawn_promotion(move) {
-        const piece = move.pieceMoved;
-        if(piece instanceof(Pawn)) {
-            if (piece.color == 'white' && move.endPos.position.x == 0) {
-                move.endPos.piece = new Queen('white', piece.id);
-                return true;
-            }
+    valid_move(move) {
+        const canMove = move.startPos.piece.can_move(move.startPos, move.endPos);
+        const isEmpty = !move.endPos.piece;
+        const correctTurn = move.player === this.currentTurn? true : false;
 
-            else if (piece.color == 'black' && move.endPos.position.x == 7) {
-                move.endPos.piece = new Queen('black', piece.id);
-                return true;
-            }
+        let isSameColor = false;
+        let isBlocked = this.is_blocked(move);
+        
+        if(!isEmpty) {
+            isSameColor = move.startPos.piece.color == move.endPos.piece.color? true: false;
         }
-        return false;
-    }
 
-    // Returns true if black or white king are in check - Function assumes argument passed is the tile containing one of the 2 Kings
-    king_is_checked(kingTile) {
 
-        let isBlocked = true;
-        let canMove = false;
-
-        for(let x = 0; x < 8; x++) {
-            for(let z = 0; z < 8; z++) {
-                const currentTile = this.board[x][z];
-                const move = new Move(null, currentTile, kingTile);
-                isBlocked = this.is_blocked(move);
-
-                if(currentTile.piece) {
-                    const kingIsWhite = kingTile.piece.color == 'white'? true : false;
-                    const pieceIsWhite = currentTile.piece.color == 'white'? true : false;
-                    canMove = currentTile.piece.can_move(currentTile, kingTile);
-
-                    if(kingIsWhite && canMove && !isBlocked && !pieceIsWhite) {
-                        return true;
-                    }
-
-                    else if(!kingIsWhite && canMove && !isBlocked && pieceIsWhite) {
-                        return true;
-                    }
-                }    
-            }
+        if((isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn) {
+            return true;
         }
+
         return false;
     }
     
-
-    get_king_positions() {
-        const kingPos = new Array(2);
-        for(let x = 0; x < 8; x++) {
-            for(let z = 0; z < 8; z++) {
-                if(this.board[x][z].piece instanceof(King) )  {
-                    if(this.board[x][z].piece.color == 'white') {
-                        kingPos[0] = this.board[x][z];
-                    }   
-                    
-                    else if (this.board[x][z].piece.color == 'black') {
-                        kingPos[1] = this.board[x][z];
-                    }
-                }
-            }
-        }
-        return kingPos;
-    }
-
     is_legal_move(move){
 
         const pieceAtEnd = move.endPos.piece;
@@ -299,6 +240,61 @@ export class Game {
             return false;
         }
         
+    }
+
+    // --------------------------------------------- Functions for special movement rules ----------------------------------------------------- //
+
+    pawn_promotion(move) {
+        const piece = move.pieceMoved;
+        if(piece instanceof(Pawn)) {
+            if (piece.color == 'white' && move.endPos.position.x == 0) {
+                move.endPos.piece = new Queen('white', piece.id);
+                return true;
+            }
+
+            else if (piece.color == 'black' && move.endPos.position.x == 7) {
+                move.endPos.piece = new Queen('black', piece.id);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // can_castle(move) {
+
+    // }
+    
+    // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //
+
+    king_is_checked() {
+        let isBlocked = true;
+        let canMove = false;
+        const kings = this.get_king_positions();
+        const kingTile = this.currentTurn === this.players[0]? kings[0] : kings[1];
+
+        for(let x = 0; x < 8; x++) {
+            for(let z = 0; z < 8; z++) {
+                const currentTile = this.board[x][z];
+                const move = new Move(null, currentTile, kingTile);
+                isBlocked = this.is_blocked(move);
+
+                if(currentTile.piece) {
+                    const kingIsWhite = kingTile.piece.color == 'white'? true : false;
+                    const pieceIsWhite = currentTile.piece.color == 'white'? true : false;
+                    canMove = currentTile.piece.can_move(currentTile, kingTile);
+
+                    if(kingIsWhite && canMove && !isBlocked && !pieceIsWhite) {
+                        return true;
+                    }
+
+                    else if(!kingIsWhite && canMove && !isBlocked && pieceIsWhite) {
+                        return true;
+                    }
+                }    
+            }
+        }
+        return false;
+
     }
 
     is_king_checkmated() {
@@ -344,6 +340,26 @@ export class Game {
         
         return !canKingMove && isKingChecked && !canPieceMove;
 
+    }
+
+    // --------------------------------------------- Functions for retrieving positions  ----------------------------------------------------- //
+
+    get_king_positions() {
+        const kingPos = new Array(2);
+        for(let x = 0; x < 8; x++) {
+            for(let z = 0; z < 8; z++) {
+                if(this.board[x][z].piece instanceof(King) )  {
+                    if(this.board[x][z].piece.color == 'white') {
+                        kingPos[0] = this.board[x][z];
+                    }   
+                    
+                    else if (this.board[x][z].piece.color == 'black') {
+                        kingPos[1] = this.board[x][z];
+                    }
+                }
+            }
+        }
+        return kingPos;
     }
 
     retrieve_tile_from_position(posX, posY) {
