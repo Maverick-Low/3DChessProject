@@ -383,6 +383,7 @@ function move_piece() {
                 pieceAtTarget.userData.posZ = null;
                 pieceAtTarget.userData.taken = true;
             }
+            
 
             // Updating piece position in 3D and 2D
             selectedPiece.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
@@ -390,6 +391,7 @@ function move_piece() {
             selectedPiece.userData.posX = newPos.x;
             selectedPiece.userData.posZ = newPos.z;
 
+            game.update_pieceSet(move);
             game.move_piece(move);
             game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
 
@@ -419,7 +421,8 @@ function deselect_piece() {
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-        console.log(game.board);
+        console.log('black:', game.blackPieceSet);
+        console.log('white:', game.whitePieceSet);
     }
 }
 

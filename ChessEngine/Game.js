@@ -11,6 +11,8 @@ export class Game {
         this.status = this.gameStatus.active;
         this.movesList = new Array();
         this.currentTurn = this.players[0];
+        this.whitePieceSet = this.create_pieceSet('white');
+        this.blackPieceSet = this.create_pieceSet('black');
     }
 
     gameStatus = {
@@ -33,10 +35,45 @@ export class Game {
         return board.initialise_board();
     }
 
+    create_pieceSet(color) {
+        const pieceSet = new Array();
+
+        for(let x = 0; x < 8; x++) {
+            for(let z = 0; z < 8; z++) {
+                const currentTile = this.board[x][z];
+                if(currentTile.piece) {
+                    if(currentTile.piece.color === color) {
+                        pieceSet.push(currentTile);
+                    }
+                }
+                if(pieceSet.length === 16) {
+                    break;
+                }
+            }
+        }
+        return pieceSet;
+    }
+
     move_piece(move) {
         const piece = move.pieceMoved;
         move.startPos.piece = null;
         move.endPos.piece = piece;
+    }
+
+    update_pieceSet(move) {
+        const pieceSet = move.startPos.piece.color === 'white'? this.whitePieceSet : this.blackPieceSet;
+
+        const oldTile = pieceSet.find(Tile => Tile.piece === move.startPos.piece);
+        let newTile = null;
+        for(let i = 0 ; i < 8; i++) {
+            newTile = this.board[i].find(Tile => Tile.position === move.endPos.position);
+            if(newTile) {
+                break;
+            }
+        }
+
+        const index = pieceSet.indexOf(oldTile);
+        pieceSet[index] = newTile;
     }
 
     valid_move(move) {
