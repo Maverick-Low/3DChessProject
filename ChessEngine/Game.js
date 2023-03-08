@@ -259,10 +259,6 @@ export class Game {
         }
         return false;
     }
-
-    // can_castle(move) {
-
-    // }
     
     // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //
 
@@ -297,7 +293,7 @@ export class Game {
 
     }
 
-    is_king_checkmated() {
+    king_is_checkmated() {
 
         let canKingMove = false;
         const kings = this.get_king_positions();
