@@ -329,12 +329,12 @@ export class Game {
         // 3. Can any other pieces move
         let canPieceMove = false;
         const pieceSet = this.currentTurn === this.players[0]? this.whitePieceSet : this.blackPieceSet;
-        for(let i = 0; i < pieceSet.length; i++) {     
+        for(let i = 0; i < pieceSet.length; i++) {  
             for(let x = 0; x < 8; x++) {
                 for(let y = 0; y < 8; y++) {
                     const newPos1 =  this.retrieve_tile_from_position(x,y);
                     const move = new Move(this.currentTurn, pieceSet[i], newPos1);
-                    if(this.is_legal_move(move)) {
+                    if(pieceSet[i].piece && this.is_legal_move(move)) {
                         canPieceMove = true;
                         break;
                     }
@@ -342,7 +342,6 @@ export class Game {
             }
         }
         
-        console.log('checkMate?', !canKingMove && isKingChecked && !canPieceMove);
         return !canKingMove && isKingChecked && !canPieceMove;
 
     }
