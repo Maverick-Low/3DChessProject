@@ -391,8 +391,7 @@ function move_piece() {
             selectedPiece.userData.posX = newPos.x;
             selectedPiece.userData.posZ = newPos.z;
 
-            game.update_pieceSet(move);
-            game.move_piece(move);
+            game.update_game(move);
             game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
 
 

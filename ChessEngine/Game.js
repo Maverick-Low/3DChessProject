@@ -60,17 +60,26 @@ export class Game {
         move.endPos.piece = piece;
     }
 
-    update_pieceSet(move) {
+    update_game(move) {
         const pieceSet = move.startPos.piece.color === 'white'? this.whitePieceSet : this.blackPieceSet;
-
         const oldTile = pieceSet.find(Tile => Tile.piece === move.startPos.piece);
         let newTile = null;
+
         for(let i = 0 ; i < 8; i++) {
             newTile = this.board[i].find(Tile => Tile.position === move.endPos.position);
             if(newTile) {
                 break;
             }
         }
+
+        if(move.endPos.piece) {
+            const checkSet = move.endPos.piece.color === 'white'? this.whitePieceSet : this.blackPieceSet;
+            const pieceTaken = checkSet.find(Tile => Tile.piece === move.endPos.piece);
+            const index = pieceSet.indexOf(pieceTaken);
+            checkSet.splice(index, 1);
+        }
+
+        this.move_piece(move);
 
         const index = pieceSet.indexOf(oldTile);
         pieceSet[index] = newTile;
@@ -294,13 +303,10 @@ export class Game {
 
     is_king_checkmated() {
 
-        // Is the king in check
-        // Can the king move
-        // Can any other pieces move
         let canKingMove = false;
         const kings = this.get_king_positions();
-        const king = this.currentTurn == this.players[0]? kings[0] : kings[1];
-        const isKingChecked = this.king_is_checked(king);
+        const king = this.currentTurn === this.players[0]? kings[0] : kings[1];
+        const isKingChecked = this.king_is_checked(king); // 1. Is the king in check
 
         // Iterate only around the king
         const startX = king.position.x - 1 > 0? king.position.x - 1 : 0;
@@ -308,7 +314,7 @@ export class Game {
         const startY = king.position.y - 1 > 0? king.position.y - 1 : 0;
         const endY = king.position.y + 1 < 7?  king.position.y + 1 : 7;
 
-        // Check if the king has any legal moves
+        // 2. Check if the king has any legal moves
         for(let x = startX; x <= endX; x++) {
             for(let y = startY; y <= endY; y++) {
                 const newPos =  this.retrieve_tile_from_position(x,y);
@@ -319,14 +325,25 @@ export class Game {
                 }
             }
         }
-        // console.log('checking King:', king.piece.color);
-        // console.log('canKingMove:', canKingMove );
-        // console.log('isKingChecked:', isKingChecked);
-        console.log('Checkmate?', !canKingMove && isKingChecked);
-        // console.log('_________________\n');
         
-
-        return !canKingMove && isKingChecked;
+        // 3. Can any other pieces move
+        let canPieceMove = false;
+        const pieceSet = this.currentTurn === this.players[0]? this.whitePieceSet : this.blackPieceSet;
+        for(let i = 0; i < pieceSet.length; i++) {     
+            for(let x = 0; x < 8; x++) {
+                for(let y = 0; y < 8; y++) {
+                    const newPos1 =  this.retrieve_tile_from_position(x,y);
+                    const move = new Move(this.currentTurn, pieceSet[i], newPos1);
+                    if(this.is_legal_move(move)) {
+                        canPieceMove = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        console.log('checkMate?', !canKingMove && isKingChecked && !canPieceMove);
+        return !canKingMove && isKingChecked && !canPieceMove;
 
     }
 
