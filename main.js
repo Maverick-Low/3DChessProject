@@ -297,12 +297,12 @@ function reset_tile_materials() {
 function highlight_kings_tile(){
     const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
     const kings = game.get_king_positions();
-    const whiteKingIsChecked = game.king_is_checked(kings[0]);
-    const blackKingIsChecked = game.king_is_checked(kings[1]);
-    const kingInCheck = whiteKingIsChecked? kings[0] : kings[1];
+    const kingInCheck = game.currentTurn === game.players[0]? kings[0] : kings[1];
+    const kingIsChecked = game.king_is_checked();
     const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
 
-    if(whiteKingIsChecked || blackKingIsChecked) {
+
+    if(kingIsChecked) {
         tile3D.material = redHighlight;
         tile3D.material.transparent = true;
         tile3D.opacity = 0.5;
@@ -408,7 +408,7 @@ function move_piece() {
             
         }
         
-        game.is_king_checkmated();
+        // game.king_is_checkmated();
     }
 }
 
