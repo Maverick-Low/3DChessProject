@@ -384,20 +384,13 @@ function move_piece() {
                 pieceAtTarget.userData.taken = true;
             }
             
-
-            // Updating piece position in 3D and 2D
+            // Updating game in 3D 
             selectedPiece.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newPos;
             selectedPiece.userData.posX = newPos.x;
             selectedPiece.userData.posZ = newPos.z;
 
-            game.update_game(move);
-
-            
-            game.move_piece(move);
-            game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
-
-
+            // Checking special rules
             if(game.pawn_promotion(move)) {
                 const pieceName = selectedPiece.name.includes('white')? 'whiteQueen' : 'blackQueen';
                 const pos = selectedPiece.position;
@@ -405,7 +398,31 @@ function move_piece() {
                 scene.remove(selectedPiece);
                 customise_piece(pos, piece, {x: pos.z, z: pos.x});
             }
-           
+
+            if(game.can_castle(move)) {
+                const rookPos = find_tile_position({x: 7, z:7});
+                const rook = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
+
+                const tile = board.children.find((child) => (child.userData.squareNumber.x === 7) && (child.userData.squareNumber.z === 5));
+                const newPos = tile.userData.squareNumber;
+                const targetPosition = find_tile_position(newPos);
+               
+                rook.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
+                rook.userData.currentSquare = newPos;
+                rook.userData.posX = newPos.x;
+                rook.userData.posZ = newPos.z;
+            }
+
+            if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
+                move.startPos.piece.canCastle = false;
+            }
+            
+            // Updating game in 2D Chess Engine
+            game.update_game(move);
+            game.move_piece(move);
+            game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
+
+            // Reset for next selection
             reset_tile_materials();
             selected = null;
             
@@ -431,9 +448,7 @@ function print_board(event) {
 function test(event) {
     var key = event.which || event.keyCode
     if(key === 80) {
-        // console.log(game.board[7][4]);
-        // const move = new Move(null, game.board[2][0], game.board[1][0]);
-        // game.king_is_checked(game.board[7][4]);
+       console.log(game.board); 
     }
 }
 

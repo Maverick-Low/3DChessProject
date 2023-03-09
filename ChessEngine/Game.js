@@ -91,13 +91,6 @@ export class Game {
         pieceSet[index] = newTile;
 
 
-        // if(move.endPos.piece) {
-        //     const checkSet = move.startPos.piece.color === 'white'? this.blackPieceSet : this.whitePieceSet;
-        //     const pieceTaken = checkSet.find(Tile => Tile.piece === move.endPos.piece);
-        //     const index1 = pieceSet.indexOf(pieceTaken);
-        //     checkSet.splice(index1, 1);
-        // }\
-
         // if (move.startPos.piece instanceof(King)) {
         //     // RHS castling for white
         //     const king = move.startPos.piece;
@@ -237,21 +230,29 @@ export class Game {
     valid_move(move) {
         const canMove = move.startPos.piece.can_move(move.startPos, move.endPos);
         const isEmpty = !move.endPos.piece;
-        const correctTurn = move.player === this.currentTurn? true : false;
+        const correctTurn = move.player === this.currentTurn;
 
         let isSameColor = false;
         let isBlocked = this.is_blocked(move);
         
         if(!isEmpty) {
-            isSameColor = move.startPos.piece.color == move.endPos.piece.color? true: false;
+            isSameColor = move.startPos.piece.color === move.endPos.piece.color;
+        }
+        
+
+        const rook = this.whitePieceSet.find(Tile => (Tile.piece.id === 31));
+        const canRookCastle = rook.piece.canCastle;
+    
+        if(move.startPos.piece instanceof(King) && move.startPos.piece.canCastle && canRookCastle)  {
+           
+            const sameRow = move.endPos.position.x === move.startPos.position.x;
+            const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
+            const canMoveTwo = sameRow && (y == 2);
+            return (isEmpty || isSameColor == false) && (canMove || canMoveTwo) && !isBlocked && correctTurn;
         }
 
 
-        if((isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn) {
-            return true;
-        }
-
-        return false;
+       return (isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn;
     }
     
     is_legal_move(move){
@@ -267,6 +268,7 @@ export class Game {
 
         const kingColour = king.piece.color;
         const isKingChecked = this.king_is_checked(king);
+        const color = kingColour === 'white'? 'white' : 'black';
 
         if(validMove) {
             this.move_piece(move);
@@ -282,9 +284,6 @@ export class Game {
             move.startPos.piece = pieceAtStart;
             move.endPos.piece = pieceAtEnd;
 
-            
-        
-            const color = kingColour === 'white'? 'white' : 'black';
             canStopCheck = isKingChecked && !willKingBeChecked && pieceAtStart.color === color;
             willNotLeadToCheck = !isKingChecked && !(willKingBeChecked && pieceAtStart.color === color);
             
@@ -314,6 +313,26 @@ export class Game {
         }
         return false;
     }
+
+    can_castle(move) {
+        if (move.startPos.piece instanceof(King)) {
+            // RHS castling for white
+            const king = move.startPos.piece;
+            const rook = this.board[7][7].piece;
+            const movedFromStart = (move.startPos === this.board[7][4]) && (move.endPos === this.board[7][6]);
+            
+            if(rook) {
+                if(king.canCastle && rook.canCastle && movedFromStart) {
+                    const castleRook = new Move(this.currentTurn, this.board[7][7], this.board[7][5]);
+                    this.move_piece(castleRook);
+                    return true;
+                }
+            }
+           
+        }
+        return false;
+    }
+
     
     // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //
 

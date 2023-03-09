@@ -11,6 +11,7 @@ export class Rook extends Piece{
 
     constructor(color, id, killed) {
         super(color, id, killed);
+        this.canCastle = true;
     }
 
     can_move(startPos, endPos) {
@@ -79,15 +80,21 @@ export class King extends Piece{
 
     constructor(color, id, killed) {
         super(color, id, killed);
+        this.canCastle = true;
     }
 
     can_move(startPos, endPos) {
-
+        
         const x = Math.abs(endPos.position.x - startPos.position.x);
         const y = Math.abs(endPos.position.y - startPos.position.y);
 
         const sameRow = endPos.position.x == startPos.position.x? true : false;
         const sameCol = endPos.position.y == startPos.position.y? true : false;
+
+        // if(this.canCastle === true) {
+        //     return (sameCol && (x == 1) || sameRow && (y == 1) || (x == 1) && (y == 1) || sameRow && (y == 2));
+        // }
+       
         return (sameCol && (x == 1) || sameRow && (y == 1) || (x == 1) && (y == 1));
     }
 
