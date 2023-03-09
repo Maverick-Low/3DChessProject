@@ -67,8 +67,10 @@ export class Game {
     update_game(move) {
         const pieceSet = move.startPos.piece.color === 'white'? this.whitePieceSet : this.blackPieceSet;
         const oldTile = pieceSet.find(Tile => Tile.piece === move.startPos.piece);
+        const index = pieceSet.indexOf(oldTile);
         let newTile = null;
-
+    
+        
         for(let i = 0 ; i < 8; i++) {
             newTile = this.board[i].find(Tile => Tile.position === move.endPos.position);
             if(newTile) {
@@ -76,17 +78,68 @@ export class Game {
             }
         }
 
+        // If piece is taken, remove it from the correct pieceset
         if(move.endPos.piece) {
-            const checkSet = move.endPos.piece.color === 'white'? this.whitePieceSet : this.blackPieceSet;
-            const pieceTaken = checkSet.find(Tile => Tile.piece === move.endPos.piece);
-            const index = pieceSet.indexOf(pieceTaken);
-            checkSet.splice(index, 1);
+            console.log(move.endPos.piece);
+            const set = move.endPos.piece.color === 'white'? this.whitePieceSet: this.blackPieceSet;
+            const pieceTaken = set.find(Tile => Tile.piece === move.endPos.piece);
+            const setIndex = set.indexOf(pieceTaken);
+            set.splice(setIndex, 1);
         }
 
-        this.move_piece(move);
-
-        const index = pieceSet.indexOf(oldTile);
+        // Update pieceset when piece has move
         pieceSet[index] = newTile;
+
+
+        // if(move.endPos.piece) {
+        //     const checkSet = move.startPos.piece.color === 'white'? this.blackPieceSet : this.whitePieceSet;
+        //     const pieceTaken = checkSet.find(Tile => Tile.piece === move.endPos.piece);
+        //     const index1 = pieceSet.indexOf(pieceTaken);
+        //     checkSet.splice(index1, 1);
+        // }\
+
+        // if (move.startPos.piece instanceof(King)) {
+        //     // RHS castling for white
+        //     const king = move.startPos.piece;
+        //     const rook = this.board[7][7].piece? this.board[7][7].piece : null;
+            
+        //     if(king.canCastle && rook.canCastle) {
+        //         const castleRook = new Move(this.currentTurn, this.board[7][7], this.board[7][5]);
+        //         this.move_piece(castleRook);
+        //         console.log('castled');
+        //     }
+        // }
+        
+        // Update piecesets 
+        // const index = pieceSet.indexOf(oldTile);
+        // console.log('newTile', newTile.piece);
+        // console.log('index', index);
+        
+        // if(move.endPos.piece instanceof(King)) {
+        //     // const king = move.endPos.piece;
+        //     // const atStartPos = move.endPos.position.x === 7 && move.endPos.position.y === 6;
+        //     // let rookAtStartPos = false;
+        //     // let rook;
+        //     // if(this.board[7][7].piece) {
+        //     //     rookAtStartPos = this.board[7][7].piece && this.board[7][7].piece instanceof(Rook);
+        //     //     rook = this.board[7][7].piece
+        //     // }
+            
+        //     // if(atStartPos && king.canCastle === true && rookAtStartPos === true && rook.canCastle === true) {
+        //     //     console.log('castled');
+        //     // }
+        //     // move.endPos.piece.canCastle = false;
+
+        //     // RHS castling for white
+        //     const king = move.endPos.piece;
+        //     const rook = this.board[7][7].piece? this.board[7][7].piece : null;
+            
+        //     if(king.canCastle && rook.canCastle) {
+        //         const castleRook = new Move(this.currentTurn, this.board[7][7], this.board[7][5]);
+        //         this.move_piece(castleRook);
+        //         console.log('castled');
+        //     }
+        // }
     }
 
     // --------------------------------------------- Functions for movement validation  ----------------------------------------------------- //
@@ -228,6 +281,8 @@ export class Game {
             willKingBeChecked = this.king_is_checked(king);
             move.startPos.piece = pieceAtStart;
             move.endPos.piece = pieceAtEnd;
+
+            
         
             const color = kingColour === 'white'? 'white' : 'black';
             canStopCheck = isKingChecked && !willKingBeChecked && pieceAtStart.color === color;
