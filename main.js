@@ -310,7 +310,7 @@ function highlight_kings_tile(){
  
 }
 
-// --------------------------------------------- Functions for selecting pieces ----------------------------------------------------- //
+// --------------------------------------------- Functions for moving pieces ----------------------------------------------------- //
 // Function taken from https://threejs.org/docs/#api/en/core/Raycaster
 function move_mouse( event ) {
     // calculate mouse position in normalized device coordinates
@@ -326,9 +326,7 @@ function move_piece() {
     // Get the selected piece
     if(!selected && intersects.length > 0) {
         whitesTurn = game.currentTurn === game.players[0];
-        
         selected = intersects[lengthToPiece].object.userData.currentSquare;
-        
         let selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
 
         // Alternates moves
@@ -399,26 +397,14 @@ function move_piece() {
                 customise_piece(pos, piece, {x: pos.z, z: pos.x});
             }
 
-            if(game.can_castle(move)) {
-                const rookPos = find_tile_position({x: 7, z:7});
-                const rook = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
-
-                const tile = board.children.find((child) => (child.userData.squareNumber.x === 7) && (child.userData.squareNumber.z === 5));
-                const newPos = tile.userData.squareNumber;
-                const targetPosition = find_tile_position(newPos);
-               
-                rook.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
-                rook.userData.currentSquare = newPos;
-                rook.userData.posX = newPos.x;
-                rook.userData.posZ = newPos.z;
-            }
+            castle_king(move);
 
             if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
                 move.startPos.piece.canCastle = false;
             }
             
             // Updating game in 2D Chess Engine
-            game.update_game(move);
+            game.update_pieceSet(move);
             game.move_piece(move);
             game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
 
@@ -436,6 +422,36 @@ function deselect_piece() {
     selected = null;
     reset_tile_materials();
 }
+
+// --------------------------------------------- Functions for special movement rules ----------------------------------------------------- //
+
+function castle_king(move) {
+    if(game.can_castle(move)) {
+        const rookTile = game.get_rook(move);
+        const rookCoOrds = {x: rookTile.position.y, z: rookTile.position.x};
+        const rookPos = find_tile_position(rookCoOrds);
+        const rook3D = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
+       
+        const rook3DNewPos = rookTile === game.board[7][7]? {x: 7, z: 5} : {x: 7, z: 3};
+        const tile = board.children.find((child) => (child.userData.squareNumber.x === rook3DNewPos.x) && (child.userData.squareNumber.z === rook3DNewPos.z));
+        const newPos = tile.userData.squareNumber;
+        const targetPosition = find_tile_position(newPos);
+
+        // Move rook in 3D
+        rook3D.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
+        rook3D.userData.currentSquare = newPos;
+        rook3D.userData.posX = newPos.x;
+        rook3D.userData.posZ = newPos.z;
+
+        // Move rook in 2D
+        const rookEndPos = move.endPos === game.board[7][6]? game.board[7][5] : game.board[7][3];
+        const castleRook = new Move(game.currentTurn, rookTile, rookEndPos);
+        game.update_pieceSet(castleRook);
+        game.move_piece(castleRook);
+    }
+}
+
+// --------------------------------------------- Functions for printing ----------------------------------------------------- //
 
 function print_board(event) {
     var key = event.which || event.keyCode

@@ -64,7 +64,7 @@ export class Game {
         move.endPos.piece = piece;
     }
 
-    update_game(move) {
+    update_pieceSet(move) {
         const pieceSet = move.startPos.piece.color === 'white'? this.whitePieceSet : this.blackPieceSet;
         const oldTile = pieceSet.find(Tile => Tile.piece === move.startPos.piece);
         const index = pieceSet.indexOf(oldTile);
@@ -80,7 +80,6 @@ export class Game {
 
         // If piece is taken, remove it from the correct pieceset
         if(move.endPos.piece) {
-            console.log(move.endPos.piece);
             const set = move.endPos.piece.color === 'white'? this.whitePieceSet: this.blackPieceSet;
             const pieceTaken = set.find(Tile => Tile.piece === move.endPos.piece);
             const setIndex = set.indexOf(pieceTaken);
@@ -244,7 +243,6 @@ export class Game {
         const canRookCastle = rook.piece.canCastle;
     
         if(move.startPos.piece instanceof(King) && move.startPos.piece.canCastle && canRookCastle)  {
-           
             const sameRow = move.endPos.position.x === move.startPos.position.x;
             const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
             const canMoveTwo = sameRow && (y == 2);
@@ -316,24 +314,23 @@ export class Game {
 
     can_castle(move) {
         if (move.startPos.piece instanceof(King)) {
-            // RHS castling for white
+    
+            // Castling for white king
             const king = move.startPos.piece;
-            const rook = this.board[7][7].piece;
-            const movedFromStart = (move.startPos === this.board[7][4]) && (move.endPos === this.board[7][6]);
+            const rookTile = this.get_rook(move);
+
+            const newKingPosRHS = this.board[7][6];
+            const newKingPosLHS = this.board[7][2];
+            const kingEndPos = move.endPos === this.board[7][6]? newKingPosRHS : newKingPosLHS;
+
+            const movedFromStart = (move.startPos === this.board[7][4]) && (move.endPos === kingEndPos);
+
+            return rookTile.piece && king.canCastle && rookTile.piece.canCastle && movedFromStart;
             
-            if(rook) {
-                if(king.canCastle && rook.canCastle && movedFromStart) {
-                    const castleRook = new Move(this.currentTurn, this.board[7][7], this.board[7][5]);
-                    this.move_piece(castleRook);
-                    return true;
-                }
-            }
-           
         }
-        return false;
+
     }
 
-    
     // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //
 
     king_is_checked() {
@@ -349,8 +346,8 @@ export class Game {
                 isBlocked = this.is_blocked(move);
 
                 if(currentTile.piece) {
-                    const kingIsWhite = kingTile.piece.color == 'white'? true : false;
-                    const pieceIsWhite = currentTile.piece.color == 'white'? true : false;
+                    const kingIsWhite = kingTile.piece.color == 'white';
+                    const pieceIsWhite = currentTile.piece.color == 'white';
                     canMove = currentTile.piece.can_move(currentTile, kingTile);
 
                     if(kingIsWhite && canMove && !isBlocked && !pieceIsWhite) {
@@ -412,7 +409,7 @@ export class Game {
 
     }
 
-    // --------------------------------------------- Functions for retrieving positions  ----------------------------------------------------- //
+    // --------------------------------------------- Functions for retrieving positions or pieces ----------------------------------------------------- //
 
     get_king_positions() {
         const kingPos = new Array(2);
@@ -441,5 +438,20 @@ export class Game {
         }
         
         return null;
+    }
+
+    get_rook(move) {
+        let rook;
+        if (move.startPos.piece instanceof(King)) {
+            switch(move.endPos) {
+                case this.board[7][6]: // White Rook RHS
+                        rook = this.whitePieceSet.find(Tile => Tile.piece.id === 31); 
+                        break; 
+                case this.board[7][2]:  // White Rook LHS
+                        rook = this.whitePieceSet.find(Tile => Tile.piece.id === 24); 
+                        break; 
+            }   
+        }
+        return rook;
     }
 }
