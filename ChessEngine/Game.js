@@ -238,15 +238,33 @@ export class Game {
             isSameColor = move.startPos.piece.color === move.endPos.piece.color;
         }
         
-
-        const rook = this.whitePieceSet.find(Tile => (Tile.piece.id === 31));
-        const canRookCastle = rook.piece.canCastle;
+        const rookRHS = this.whitePieceSet.find(Tile => (Tile.piece.id === 31));
+        const rookLHS = this.whitePieceSet.find(Tile => (Tile.piece.id === 24));
+        const canRookRHSCastle = rookRHS.piece.canCastle;
+        const canRookLHSCastle = rookLHS.piece.canCastle;
     
-        if(move.startPos.piece instanceof(King) && move.startPos.piece.canCastle && canRookCastle)  {
+        if(move.startPos.piece instanceof(King) && move.startPos.piece.canCastle)  {
             const sameRow = move.endPos.position.x === move.startPos.position.x;
-            const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
-            const canMoveTwo = sameRow && (y == 2);
-            return (isEmpty || isSameColor == false) && (canMove || canMoveTwo) && !isBlocked && correctTurn;
+
+            if(canRookRHSCastle && canRookLHSCastle) {
+                const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
+                const canMoveTwo = sameRow && (y == 2);
+                return (isEmpty || isSameColor == false) && (canMove || canMoveTwo) && !isBlocked && correctTurn;
+            }
+
+            if(canRookRHSCastle) {
+                const y = move.endPos.position.y - move.startPos.position.y;
+                const canMoveTwoRight = sameRow && (y == 2);
+                return (isEmpty || isSameColor == false) && (canMove || canMoveTwoRight) && !isBlocked && correctTurn;
+            }
+
+            else if(canRookLHSCastle) {
+                const y = move.startPos.position.y - move.endPos.position.y;
+                const canMoveTwoLeft = sameRow && (y == 2);
+                return (isEmpty || isSameColor == false) && (canMove || canMoveTwoLeft) && !isBlocked && correctTurn;
+            }
+    
+            return (isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn;
         }
 
 

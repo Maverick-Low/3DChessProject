@@ -38,12 +38,12 @@ export class Board {
         
         // White Pieces
         board[7][0].piece = new Rook('white', 24);
-        board[7][1].piece = new Knight('white', 25);
-        board[7][2].piece = new Bishop('white', 26);
-        board[7][3].piece = new Queen('white', 27);
+        // board[7][1].piece = new Knight('white', 25);
+        // board[7][2].piece = new Bishop('white', 26);
+        // board[7][3].piece = new Queen('white', 27);
         board[7][4].piece = new King('white', 28);
-        board[7][5].piece = new Bishop('white', 29);
-        board[7][6].piece = new Knight('white', 30);
+        // board[7][5].piece = new Bishop('white', 29);
+        // board[7][6].piece = new Knight('white', 30);
         board[7][7].piece = new Rook('white', 31);
         
 
