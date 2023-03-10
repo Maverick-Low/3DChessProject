@@ -301,7 +301,6 @@ function highlight_kings_tile(){
     const kingIsChecked = game.king_is_checked();
     const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
 
-
     if(kingIsChecked) {
         tile3D.material = redHighlight;
         tile3D.material.transparent = true;
@@ -427,12 +426,16 @@ function deselect_piece() {
 
 function castle_king(move) {
     if(game.can_castle(move)) {
+        // Get the corresponding rook 
         const rookTile = game.get_rook(move);
         const rookCoOrds = {x: rookTile.position.y, z: rookTile.position.x};
         const rookPos = find_tile_position(rookCoOrds);
         const rook3D = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
        
-        const rook3DNewPos = rookTile === game.board[7][7]? {x: 7, z: 5} : {x: 7, z: 3};
+        // Set the corresponding castle position for the rook
+        const isRookWhite = rookTile.piece.color === 'white';
+        const posX = isRookWhite? 7 : 0;
+        const rook3DNewPos = rookTile === game.board[posX][7]? {x: posX, z: 5} : {x: posX, z: 3};
         const tile = board.children.find((child) => (child.userData.squareNumber.x === rook3DNewPos.x) && (child.userData.squareNumber.z === rook3DNewPos.z));
         const newPos = tile.userData.squareNumber;
         const targetPosition = find_tile_position(newPos);
@@ -444,7 +447,7 @@ function castle_king(move) {
         rook3D.userData.posZ = newPos.z;
 
         // Move rook in 2D
-        const rookEndPos = move.endPos === game.board[7][6]? game.board[7][5] : game.board[7][3];
+        const rookEndPos = move.endPos === game.board[posX][6]? game.board[posX][5] : game.board[posX][3];
         const castleRook = new Move(game.currentTurn, rookTile, rookEndPos);
         game.update_pieceSet(castleRook);
         game.move_piece(castleRook);

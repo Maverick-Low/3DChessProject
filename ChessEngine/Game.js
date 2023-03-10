@@ -88,50 +88,6 @@ export class Game {
 
         // Update pieceset when piece has move
         pieceSet[index] = newTile;
-
-
-        // if (move.startPos.piece instanceof(King)) {
-        //     // RHS castling for white
-        //     const king = move.startPos.piece;
-        //     const rook = this.board[7][7].piece? this.board[7][7].piece : null;
-            
-        //     if(king.canCastle && rook.canCastle) {
-        //         const castleRook = new Move(this.currentTurn, this.board[7][7], this.board[7][5]);
-        //         this.move_piece(castleRook);
-        //         console.log('castled');
-        //     }
-        // }
-        
-        // Update piecesets 
-        // const index = pieceSet.indexOf(oldTile);
-        // console.log('newTile', newTile.piece);
-        // console.log('index', index);
-        
-        // if(move.endPos.piece instanceof(King)) {
-        //     // const king = move.endPos.piece;
-        //     // const atStartPos = move.endPos.position.x === 7 && move.endPos.position.y === 6;
-        //     // let rookAtStartPos = false;
-        //     // let rook;
-        //     // if(this.board[7][7].piece) {
-        //     //     rookAtStartPos = this.board[7][7].piece && this.board[7][7].piece instanceof(Rook);
-        //     //     rook = this.board[7][7].piece
-        //     // }
-            
-        //     // if(atStartPos && king.canCastle === true && rookAtStartPos === true && rook.canCastle === true) {
-        //     //     console.log('castled');
-        //     // }
-        //     // move.endPos.piece.canCastle = false;
-
-        //     // RHS castling for white
-        //     const king = move.endPos.piece;
-        //     const rook = this.board[7][7].piece? this.board[7][7].piece : null;
-            
-        //     if(king.canCastle && rook.canCastle) {
-        //         const castleRook = new Move(this.currentTurn, this.board[7][7], this.board[7][5]);
-        //         this.move_piece(castleRook);
-        //         console.log('castled');
-        //     }
-        // }
     }
 
     // --------------------------------------------- Functions for movement validation  ----------------------------------------------------- //
@@ -238,8 +194,13 @@ export class Game {
             isSameColor = move.startPos.piece.color === move.endPos.piece.color;
         }
         
-        const rookRHS = this.whitePieceSet.find(Tile => (Tile.piece.id === 31));
-        const rookLHS = this.whitePieceSet.find(Tile => (Tile.piece.id === 24));
+        const pieceIsWhite = move.startPos.piece.color === 'white';
+        const rhsID = pieceIsWhite? 31 : 7;
+        const lshID = pieceIsWhite? 24 : 0;
+        const pieceSet = pieceIsWhite? this.whitePieceSet : this.blackPieceSet;
+
+        const rookRHS = pieceSet.find(Tile => (Tile.piece.id === rhsID));
+        const rookLHS = pieceSet.find(Tile => (Tile.piece.id === lshID));
         const canRookRHSCastle = rookRHS.piece.canCastle;
         const canRookLHSCastle = rookLHS.piece.canCastle;
     
@@ -263,8 +224,6 @@ export class Game {
                 const canMoveTwoLeft = sameRow && (y == 2);
                 return (isEmpty || isSameColor == false) && (canMove || canMoveTwoLeft) && !isBlocked && correctTurn;
             }
-    
-            return (isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn;
         }
 
 
@@ -333,17 +292,18 @@ export class Game {
     can_castle(move) {
         if (move.startPos.piece instanceof(King)) {
     
-            // Castling for white king
             const king = move.startPos.piece;
             const rookTile = this.get_rook(move);
 
-            const newKingPosRHS = this.board[7][6];
-            const newKingPosLHS = this.board[7][2];
-            const kingEndPos = move.endPos === this.board[7][6]? newKingPosRHS : newKingPosLHS;
+            const kingIsWhite = king.color === 'white';
+            const kingNewPosRHS = kingIsWhite? this.board[7][6] : this.board[0][6];
+            const kingNewPosLHS = kingIsWhite? this.board[7][2] : this.board[0][2];
+            const kingStartPos = kingIsWhite? this.board[7][4] : this.board[0][4];
+            
+            const kingEndPos = move.endPos.position.y === 6? kingNewPosRHS : kingNewPosLHS;
+            const movedFromStart = (move.startPos === kingStartPos) && (move.endPos === kingEndPos);
 
-            const movedFromStart = (move.startPos === this.board[7][4]) && (move.endPos === kingEndPos);
-
-            return rookTile.piece && king.canCastle && rookTile.piece.canCastle && movedFromStart;
+            return rookTile && rookTile.piece && king.canCastle && rookTile.piece.canCastle && movedFromStart;
             
         }
 
@@ -462,12 +422,18 @@ export class Game {
         let rook;
         if (move.startPos.piece instanceof(King)) {
             switch(move.endPos) {
-                case this.board[7][6]: // White Rook RHS
-                        rook = this.whitePieceSet.find(Tile => Tile.piece.id === 31); 
-                        break; 
-                case this.board[7][2]:  // White Rook LHS
-                        rook = this.whitePieceSet.find(Tile => Tile.piece.id === 24); 
-                        break; 
+                case this.board[7][6]: // White kingside
+                    rook = this.whitePieceSet.find(Tile => Tile.piece.id === 31); 
+                    break; 
+                case this.board[7][2]:  // White queenside
+                    rook = this.whitePieceSet.find(Tile => Tile.piece.id === 24); 
+                    break; 
+                case this.board[0][6]: // Black kingside
+                    rook = this.blackPieceSet.find(Tile => Tile.piece.id === 7); 
+                    break;
+                case this.board[0][2]:  // Black queenside
+                    rook = this.blackPieceSet.find(Tile => Tile.piece.id === 0); 
+                    break;
             }   
         }
         return rook;
