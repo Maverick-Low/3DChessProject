@@ -194,40 +194,9 @@ export class Game {
             isSameColor = move.startPos.piece.color === move.endPos.piece.color;
         }
         
-        const pieceIsWhite = move.startPos.piece.color === 'white';
-        const rhsID = pieceIsWhite? 31 : 7;
-        const lshID = pieceIsWhite? 24 : 0;
-        const pieceSet = pieceIsWhite? this.whitePieceSet : this.blackPieceSet;
+        const canKingCastle = this.can_king_castle(move);
 
-        const rookRHS = pieceSet.find(Tile => (Tile.piece.id === rhsID));
-        const rookLHS = pieceSet.find(Tile => (Tile.piece.id === lshID));
-        const canRookRHSCastle = rookRHS.piece.canCastle;
-        const canRookLHSCastle = rookLHS.piece.canCastle;
-    
-        if(move.startPos.piece instanceof(King) && move.startPos.piece.canCastle)  {
-            const sameRow = move.endPos.position.x === move.startPos.position.x;
-
-            if(canRookRHSCastle && canRookLHSCastle) {
-                const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
-                const canMoveTwo = sameRow && (y == 2);
-                return (isEmpty || isSameColor == false) && (canMove || canMoveTwo) && !isBlocked && correctTurn;
-            }
-
-            if(canRookRHSCastle) {
-                const y = move.endPos.position.y - move.startPos.position.y;
-                const canMoveTwoRight = sameRow && (y == 2);
-                return (isEmpty || isSameColor == false) && (canMove || canMoveTwoRight) && !isBlocked && correctTurn;
-            }
-
-            else if(canRookLHSCastle) {
-                const y = move.startPos.position.y - move.endPos.position.y;
-                const canMoveTwoLeft = sameRow && (y == 2);
-                return (isEmpty || isSameColor == false) && (canMove || canMoveTwoLeft) && !isBlocked && correctTurn;
-            }
-        }
-
-
-       return (isEmpty || isSameColor == false) && canMove && !isBlocked && correctTurn;
+       return (isEmpty || isSameColor == false) && (canMove || canKingCastle) && !isBlocked && correctTurn;
     }
     
     is_legal_move(move){
@@ -289,6 +258,7 @@ export class Game {
         return false;
     }
 
+    // Deals with actual castling
     can_castle(move) {
         if (move.startPos.piece instanceof(King)) {
     
@@ -307,6 +277,41 @@ export class Game {
             
         }
 
+    }
+
+    // Checks to see if the king has the option of moving to the castling squares
+    can_king_castle(move) {
+        const pieceIsWhite = move.startPos.piece.color === 'white';
+        const rhsID = pieceIsWhite? 31 : 7;
+        const lshID = pieceIsWhite? 24 : 0;
+        const pieceSet = pieceIsWhite? this.whitePieceSet : this.blackPieceSet;
+
+        const rookRHS = pieceSet.find(Tile => (Tile.piece.id === rhsID));
+        const rookLHS = pieceSet.find(Tile => (Tile.piece.id === lshID));
+        const canRookRHSCastle = rookRHS? rookRHS.piece.canCastle : false;
+        const canRookLHSCastle = rookLHS? rookLHS.piece.canCastle : false;
+    
+        if(move.startPos.piece instanceof(King) && move.startPos.piece.canCastle)  {
+            const sameRow = move.endPos.position.x === move.startPos.position.x;
+
+            if(canRookRHSCastle && canRookLHSCastle) {
+                const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
+                const canMoveTwo = sameRow && (y == 2);
+                return canMoveTwo;
+            }
+
+            if(canRookRHSCastle) {
+                const y = move.endPos.position.y - move.startPos.position.y;
+                const canMoveTwoRight = sameRow && (y == 2);
+                return canMoveTwoRight;
+            }
+
+            else if(canRookLHSCastle) {
+                const y = move.startPos.position.y - move.endPos.position.y;
+                const canMoveTwoLeft = sameRow && (y == 2);
+                return canMoveTwoLeft;
+            }
+        }
     }
 
     // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //

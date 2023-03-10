@@ -388,13 +388,7 @@ function move_piece() {
             selectedPiece.userData.posZ = newPos.z;
 
             // Checking special rules
-            if(game.pawn_promotion(move)) {
-                const pieceName = selectedPiece.name.includes('white')? 'whiteQueen' : 'blackQueen';
-                const pos = selectedPiece.position;
-                const piece = chessMesh.scene.children.find((child) => child.name === pieceName).clone(true);
-                scene.remove(selectedPiece);
-                customise_piece(pos, piece, {x: pos.z, z: pos.x});
-            }
+          
 
             castle_king(move);
 
@@ -405,7 +399,11 @@ function move_piece() {
             // Updating game in 2D Chess Engine
             game.update_pieceSet(move);
             game.move_piece(move);
+            promote_pawn(move, selectedPiece);
             game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
+           
+
+        
 
             // Reset for next selection
             reset_tile_materials();
@@ -422,7 +420,7 @@ function deselect_piece() {
     reset_tile_materials();
 }
 
-// --------------------------------------------- Functions for special movement rules ----------------------------------------------------- //
+// --------------------------------------------- Functions for special rules ----------------------------------------------------- //
 
 function castle_king(move) {
     if(game.can_castle(move)) {
@@ -451,6 +449,16 @@ function castle_king(move) {
         const castleRook = new Move(game.currentTurn, rookTile, rookEndPos);
         game.update_pieceSet(castleRook);
         game.move_piece(castleRook);
+    }
+}
+
+function promote_pawn(move, selectedPiece) {
+    if(game.pawn_promotion(move)) {
+        const pieceName = selectedPiece.name.includes('white')? 'whiteQueen' : 'blackQueen';
+        const pos = selectedPiece.position;
+        const piece = chessMesh.scene.children.find((child) => child.name === pieceName).clone(true);
+        scene.remove(selectedPiece);
+        customise_piece(pos, piece, {x: pos.z, z: pos.x});
     }
 }
 
