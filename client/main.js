@@ -36,24 +36,23 @@ async function init() {
     );
     container.append(renderer.domElement);
 
-    // Create 2D Layer to display HTML
-    renderer2D = new CSS2DRenderer();
-    renderer2D.domElement.style.position = 'absolute';
-    renderer2D.domElement.style.top = '0px';
-    renderer2D.domElement.style.pointerEvents = 'none';
-    container.append(renderer2D.domElement); 
-
+    // // Create 2D Layer to display HTML
+    // renderer2D = new CSS2DRenderer();
+    // renderer2D.domElement.style.position = 'absolute';
+    // renderer2D.domElement.style.top = '0px';
+    // renderer2D.domElement.style.pointerEvents = 'none';
+    // container.append(renderer2D.domElement); 
    
     // const p3D = new CSS2DObject(p);
     // scene.add(p3D);
     // p3D.position.set(3.5,2,3.5);
 
-    const div = document.createElement('div');
-    const p = document.createElement('p');
-    p.textContent = 'Hello';
-    div.appendChild(p);
-    const div3D = new CSS2DObject(div);
-    scene.add(div3D);
+    // const div = document.createElement('div');
+    // const p = document.createElement('p');
+    // p.textContent = 'Hello';
+    // div.appendChild(p);
+    // const div3D = new CSS2DObject(div);
+    // scene.add(div3D);
 
 
     // Raycasting
@@ -70,7 +69,7 @@ async function init() {
     controls.enableDamping = true;
 
     // Initialise window size
-    resize_window(container, camera, renderer, renderer2D);
+    resize_window(container, camera, renderer);
 
    
     // Add lights
@@ -126,20 +125,18 @@ function animate() {
     controls.update(); 
     reset_piece_materials();
     highlight_piece();
-    renderer2D.render(scene,camera);
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
     highlight_kings_tile();
 }
 
-function resize_window(container, camera, renderer, renderer2D) {
+function resize_window(container, camera, renderer) {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
 
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    renderer2D.setSize(container.clientWidth, container.clientHeight);
 }
 
 // --------------------------------------------- Functions for loading pieces onto the board  ----------------------------------------------------- //
@@ -375,7 +372,6 @@ function move_piece() {
         const oldPos = selectedPiece.userData.currentSquare; 
         const newPos = intersects[0].object.userData.squareNumber; 
         const targetPosition = find_tile_position(newPos);
-        const pieceAtTarget = scene.children.find((child) => (child.userData.posX === newPos.x) && (child.userData.posZ === newPos.z));
         
         // Move in 2D
         const startPos = game.board[oldPos.x][oldPos.z];
@@ -384,30 +380,12 @@ function move_piece() {
         const legalMove = game.is_legal_move(move);
 
         if(legalMove) {
+
             // Send 3D and 2D moves to server
-            socket.emit('move', {piece3D: selectedPiece, newPos: targetPosition, move: move}); 
-            
-            if(pieceAtTarget && pieceAtTarget.name.includes('black')) {
-                pieceAtTarget.position.set(-2,0,blackTaken);
-                pieceAtTarget.rotation.y = Math.PI/2;
-                blackTaken++;
-                pieceAtTarget.userData.currentSquare = null;
-                pieceAtTarget.userData.posX = null;
-                pieceAtTarget.userData.posZ = null;
-                pieceAtTarget.userData.taken = true;
-            }
-    
-            else if(pieceAtTarget && pieceAtTarget.name.includes('white')) {
-                pieceAtTarget.position.set(9,0,whiteTaken);
-                pieceAtTarget.rotation.y = Math.PI/-2;
-                whiteTaken++;
-                pieceAtTarget.userData.currentSquare = null;
-                pieceAtTarget.userData.posX = null;
-                pieceAtTarget.userData.posZ = null;
-                pieceAtTarget.userData.taken = true;
-            }
+            socket.emit('move', {move: move}); 
             
             // Updating game in 3D
+            take_piece(endPos);
             selectedPiece.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newPos;
             selectedPiece.userData.posX = newPos.x;
@@ -440,6 +418,31 @@ function move_piece() {
 function deselect_piece() {
     selected = null;
     reset_tile_materials();
+}
+
+// Checks if piece is at a given tile
+function take_piece(tile) {
+    const piece3D = scene.children.find((child) => (child.userData.posX === tile.position.x) && (child.userData.posZ === tile.position.y));
+
+    if(tile.piece && tile.piece.color === 'black') {
+        piece3D.position.set(-2,0,blackTaken);
+        piece3D.rotation.y = Math.PI/2;
+        blackTaken++;
+        piece3D.userData.currentSquare = null;
+        piece3D.userData.posX = null;
+        piece3D.userData.posZ = null;
+        piece3D.userData.taken = true;
+    }
+
+    else if(tile.piece && tile.piece.color === 'white') {
+        piece3D.position.set(9,0,whiteTaken);
+        piece3D.rotation.y = Math.PI/-2;
+        whiteTaken++;
+        piece3D.userData.currentSquare = null;
+        piece3D.userData.posX = null;
+        piece3D.userData.posZ = null;
+        piece3D.userData.taken = true;
+    }
 }
 
 // --------------------------------------------- Functions for special rules ----------------------------------------------------- //
@@ -504,22 +507,30 @@ function test(event) {
 // var startGame = document.getElementById("startGame");
 // startGame.addEventListener('click', init)
 socket.on('receivedMove', function(data) {
-    // Move piece in 3D
-    const posX = data.piece3D.object.userData.posX;
-    const posZ = data.piece3D.object.userData.posZ
-    const piece3D = scene.children.find((child) => (child.userData.posX === posX) && (child.userData.posZ === posZ));
-    piece3D.position.set(data.newPos.x, data.newPos.y, data.newPos.z);
-    piece3D.userData.currentSquare = {x: data.newPos.z, z: data.newPos.x};
-    piece3D.userData.posX = data.newPos.z;
-    piece3D.userData.posZ = data.newPos.x;
-    
-    // Move piece in 2D
-    console.log(data.move.startPos.position.y);
-    const oldPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
+
+    const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
     const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
-    const move = new Move(game.currentTurn, game.board[oldPos.x][oldPos.y], game.board[endPos.x][endPos.y]);
+    const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
+    const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
+    
+    // Move piece in 3D
+    take_piece(game.board[endPos.x][endPos.y]);
+    piece3D.position.set(endPos.y, 0, endPos.x);
+    piece3D.userData.currentSquare = {x: endPos.x, z: endPos.y};
+    piece3D.userData.posX = endPos.x;
+    piece3D.userData.posZ = endPos.y;
+    castle_king(move);
+
+    if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
+        move.startPos.piece.canCastle = false;
+    }
+
+    // Move piece in 2D
     game.update_pieceSet(move);
     game.move_piece(move);
+    promote_pawn(move, piece3D);
+    reset_tile_materials();
+    
 });
 
 // Current Main
