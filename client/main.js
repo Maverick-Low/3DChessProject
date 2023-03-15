@@ -339,7 +339,7 @@ function move_mouse( event ) {
 }
 
 // Function to: on first click: select a piece | on second click: Move piece to location
-function move_piece() {
+function select_piece() {
     raycaster.setFromCamera(mouse, camera);
     let intersects = raycaster.intersectObjects(scene.children);
     // Get the selected piece
@@ -362,7 +362,7 @@ function move_piece() {
         return;
     }
 
-    // Move the piece onto the target location on the board
+    // If selected, player can move the piece
     if(selected && intersects.length > 0) {
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
@@ -371,7 +371,6 @@ function move_piece() {
         const selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
         const oldPos = selectedPiece.userData.currentSquare; 
         const newPos = intersects[0].object.userData.squareNumber; 
-        const targetPosition = find_tile_position(newPos);
         
         // Move in 2D
         const startPos = game.board[oldPos.x][oldPos.z];
@@ -380,35 +379,10 @@ function move_piece() {
         const legalMove = game.is_legal_move(move);
 
         if(legalMove) {
-
-            // Send 3D and 2D moves to server
+            // Send move to server
             socket.emit('move', {move: move}); 
-            
-            // Updating game in 3D
-            take_piece(endPos);
-            selectedPiece.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
-            selectedPiece.userData.currentSquare = newPos;
-            selectedPiece.userData.posX = newPos.x;
-            selectedPiece.userData.posZ = newPos.z;
-
-            // Checking special rules
-            castle_king(move);
-
-            if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
-                move.startPos.piece.canCastle = false;
-            }
-            
-            // Updating game in 2D Chess Engine
-            game.update_pieceSet(move);
-            game.move_piece(move);
-            promote_pawn(move, selectedPiece);
-            game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
-           
-        
-            // Reset for next selection
-            reset_tile_materials();
-            selected = null;
-            
+            move_piece3D(selectedPiece, move);
+            selected = null;    
         }
         
         // game.king_is_checkmated();
@@ -417,6 +391,29 @@ function move_piece() {
 
 function deselect_piece() {
     selected = null;
+    reset_tile_materials();
+}
+
+// Move the pieces
+function move_piece3D(piece3D, move) {
+    const endPos = move.endPos.position;
+
+    take_piece(move.endPos);
+    piece3D.position.set(endPos.y, 0, endPos.x);
+    piece3D.userData.currentSquare = {x: endPos.x, z: endPos.y};
+    piece3D.userData.posX = endPos.x;
+    piece3D.userData.posZ = endPos.y;
+    castle_king(move);
+
+    if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
+        move.startPos.piece.canCastle = false;
+    }
+
+    // Move piece in 2D
+    game.update_pieceSet(move);
+    game.move_piece(move);
+    promote_pawn(move, piece3D);
+    game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
     reset_tile_materials();
 }
 
@@ -506,38 +503,21 @@ function test(event) {
 
 // var startGame = document.getElementById("startGame");
 // startGame.addEventListener('click', init)
-socket.on('receivedMove', function(data) {
 
-    const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
-    const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
-    const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
-    const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
-    
-    // Move piece in 3D
-    take_piece(game.board[endPos.x][endPos.y]);
-    piece3D.position.set(endPos.y, 0, endPos.x);
-    piece3D.userData.currentSquare = {x: endPos.x, z: endPos.y};
-    piece3D.userData.posX = endPos.x;
-    piece3D.userData.posZ = endPos.y;
-    castle_king(move);
-
-    if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
-        move.startPos.piece.canCastle = false;
-    }
-
-    // Move piece in 2D
-    game.update_pieceSet(move);
-    game.move_piece(move);
-    promote_pawn(move, piece3D);
-    reset_tile_materials();
-    
-});
 
 // Current Main
 window.onload = init();
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
-window.addEventListener( 'click', move_piece);
+window.addEventListener( 'click', select_piece);
 window.addEventListener( 'contextmenu', deselect_piece);
 window.addEventListener( 'mousemove', move_mouse, false );
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
+
+socket.on('receivedMove', function(data) {
+    const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
+    const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
+    const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
+    const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
+    move_piece3D(piece3D, move);
+});
