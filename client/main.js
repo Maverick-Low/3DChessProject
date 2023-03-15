@@ -1,18 +1,21 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';                 
 import { Rook, Knight, King, Pawn, Queen, Bishop } from './ChessEngine/Pieces.js';
 import { Game } from './ChessEngine/Game.js';
 import { Move } from './ChessEngine/Move.js';
 
 
-var scene, camera, renderer, controls, container, mouse, raycaster;
+var scene, camera, renderer, controls, container, mouse, raycaster, renderer2D;
 var board, game;
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;
 var fileName = 'client/assets/ChessSet-Normal-1.glb';
 var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
 var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
 var loader, chessMesh;
+var socket = io();
+
 
 async function init() {
     // Scene
@@ -32,7 +35,27 @@ async function init() {
         {antialias : true}
     );
     container.append(renderer.domElement);
-    
+
+    // Create 2D Layer to display HTML
+    renderer2D = new CSS2DRenderer();
+    renderer2D.domElement.style.position = 'absolute';
+    renderer2D.domElement.style.top = '0px';
+    renderer2D.domElement.style.pointerEvents = 'none';
+    container.append(renderer2D.domElement); 
+
+   
+    // const p3D = new CSS2DObject(p);
+    // scene.add(p3D);
+    // p3D.position.set(3.5,2,3.5);
+
+    const div = document.createElement('div');
+    const p = document.createElement('p');
+    p.textContent = 'Hello';
+    div.appendChild(p);
+    const div3D = new CSS2DObject(div);
+    scene.add(div3D);
+
+
     // Raycasting
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
@@ -47,12 +70,9 @@ async function init() {
     controls.enableDamping = true;
 
     // Initialise window size
-    resize_window(container, camera, renderer);
+    resize_window(container, camera, renderer, renderer2D);
 
-    // Create helpers
-    // const gridHelper = new THREE.GridHelper(200,50);
-    // scene.add(gridHelper);
-
+   
     // Add lights
     const light = new THREE.PointLight( 0xffffff, 2, 200 );
     light.position.set(3.5, 80, 3.5);
@@ -106,17 +126,20 @@ function animate() {
     controls.update(); 
     reset_piece_materials();
     highlight_piece();
+    renderer2D.render(scene,camera);
     renderer.render(scene, camera);
     window.requestAnimationFrame(animate);
     highlight_kings_tile();
 }
 
-function resize_window(container, camera, renderer) {
+function resize_window(container, camera, renderer, renderer2D) {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
 
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+
+    renderer2D.setSize(container.clientWidth, container.clientHeight);
 }
 
 // --------------------------------------------- Functions for loading pieces onto the board  ----------------------------------------------------- //
@@ -361,6 +384,9 @@ function move_piece() {
         const legalMove = game.is_legal_move(move);
 
         if(legalMove) {
+            // Send 3D and 2D moves to server
+            socket.emit('move', {piece3D: selectedPiece, newPos: targetPosition, move: move}); 
+            
             if(pieceAtTarget && pieceAtTarget.name.includes('black')) {
                 pieceAtTarget.position.set(-2,0,blackTaken);
                 pieceAtTarget.rotation.y = Math.PI/2;
@@ -381,15 +407,13 @@ function move_piece() {
                 pieceAtTarget.userData.taken = true;
             }
             
-            // Updating game in 3D 
+            // Updating game in 3D
             selectedPiece.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
             selectedPiece.userData.currentSquare = newPos;
             selectedPiece.userData.posX = newPos.x;
             selectedPiece.userData.posZ = newPos.z;
 
             // Checking special rules
-          
-
             castle_king(move);
 
             if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
@@ -402,9 +426,7 @@ function move_piece() {
             promote_pawn(move, selectedPiece);
             game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
            
-
         
-
             // Reset for next selection
             reset_tile_materials();
             selected = null;
@@ -479,14 +501,32 @@ function test(event) {
     }
 }
 
-
+// var startGame = document.getElementById("startGame");
+// startGame.addEventListener('click', init)
+socket.on('receivedMove', function(data) {
+    // Move piece in 3D
+    const posX = data.piece3D.object.userData.posX;
+    const posZ = data.piece3D.object.userData.posZ
+    const piece3D = scene.children.find((child) => (child.userData.posX === posX) && (child.userData.posZ === posZ));
+    piece3D.position.set(data.newPos.x, data.newPos.y, data.newPos.z);
+    piece3D.userData.currentSquare = {x: data.newPos.z, z: data.newPos.x};
+    piece3D.userData.posX = data.newPos.z;
+    piece3D.userData.posZ = data.newPos.x;
+    
+    // Move piece in 2D
+    console.log(data.move.startPos.position.y);
+    const oldPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
+    const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
+    const move = new Move(game.currentTurn, game.board[oldPos.x][oldPos.y], game.board[endPos.x][endPos.y]);
+    game.update_pieceSet(move);
+    game.move_piece(move);
+});
 
 // Current Main
+window.onload = init();
 window.addEventListener('resize', () => resize_window(container, camera, renderer));
 window.addEventListener( 'click', move_piece);
 window.addEventListener( 'contextmenu', deselect_piece);
 window.addEventListener( 'mousemove', move_mouse, false );
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
-
-window.onload = init();

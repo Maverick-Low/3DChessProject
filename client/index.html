@@ -15,12 +15,16 @@
                 "imports": {
                     "three": "./build/three.module.js",
                     "three/examples/jsm/controls/OrbitControls":"./jsm/controls/OrbitControls.js",
-                    "three/examples/jsm/loaders/GLTFLoader":"./jsm/loaders/GLTFLoader.js"
+                    "three/examples/jsm/loaders/GLTFLoader":"./jsm/loaders/GLTFLoader.js",
+                    "three/examples/jsm/renderers/CSS2DRenderer":"./jsm/renderers/CSS2DRenderer.js"
                 }
             }
         </script>
   </head>
   <body>
+    <script type="module" src="client/main.js"></script>
+    <!-- <input id="startGame" type="button" class = "startButton" value="Start Game" /> -->
+    
 
     <div id="scene-container">
       <canvas
@@ -28,7 +32,7 @@
     </div>
 
     <script src="https://cdn.socket.io/socket.io-3.0.0.js"></script>
-    <script> 
+    <!-- <script> 
     var socket = io();
 
     var msg = function() {
@@ -38,12 +42,9 @@
     socket.on('serverMsg', function(data) {
         console.log('Received serverMsg: ' + data.msg);
     });
-    </script>
+    </script> -->
 
-    <button onclick = "msg()"> Click to send message </button>
-
-
-    <script type="module" src="client/main.js"></script>
+    
   </body>
 </html>
 

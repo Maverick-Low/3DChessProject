@@ -2,7 +2,6 @@ var express = require('express');
 var app = express();
 var serv = require('http').Server(app);
 var path = require('path');
-// var Chess = require('Rook');
 
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/index.html');
@@ -20,17 +19,29 @@ var SOCKET_LIST = {};
 var io = require('socket.io') (serv, {});
 
 io.sockets.on('connection', function(socket) {
-    console.log("Socket connection");
-
     // Generate unique sockets for each player
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
 
-    // Receive message 'xx'
-    socket.on('xx', function(data) {
-        console.log('Received:' + data.object);
+    console.log(socket.id + ' connected');
+
+    socket.on('disconnect', function() {
+        console.log(socket.id + ' disconnected');
+        delete SOCKET_LIST[socket.id];
     });
 
-    // Send message 'serverMsg'
-    socket.emit('serverMsg', {msg: 'RawrXD'});
+    // Receive move from a socket
+    socket.on('move', function(data) {
+
+        // Send move to other sockets
+        for(let i in SOCKET_LIST) {
+            const otherSocket = SOCKET_LIST[i];
+            if(!(otherSocket === socket)) {
+                console.log('sent to socket: ', i);
+                otherSocket.emit('receivedMove', data);
+            }
+            
+        }
+    });
+
 });
