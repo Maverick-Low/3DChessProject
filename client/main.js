@@ -231,8 +231,8 @@ function highlight_piece(){
     if(!selected) {
         for(let i = 0; i < intersects.length; i++) {
             if (intersects[i].object.name.includes('white') || intersects[i].object.name.includes('black')) {
-                isWhite = intersects[lengthToPiece].object.name.includes('white');
-                isBlack = intersects[lengthToPiece].object.name.includes('black');
+                isWhite = intersects[lengthToPiece]? intersects[lengthToPiece].object.name.includes('white'): false;
+                isBlack = intersects[lengthToPiece]? intersects[lengthToPiece].object.name.includes('black'): false;
                 lengthToPiece = i;
                 break;
             }
@@ -240,17 +240,16 @@ function highlight_piece(){
                 lengthToPiece = 0;
             }
         }
-
         
-        if( intersects.length > 0 && (isBlack || isWhite)) {
+        if(intersects.length > 0 && (isBlack || isWhite)) {
             const object = intersects[lengthToPiece].object;
-            if(isWhite) {
+            if(isWhite && game.currentTurn.isWhite) {
                 const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
                 object.material = lightMaterial;
                 object.material.transparent = true;
                 object.material.opacity = 0.5;  
             }
-            else if(isBlack){
+            else if(isBlack && !game.currentTurn.isWhite){
                 const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
                 object.material =  darkMaterial;
                 object.material.transparent = true;
