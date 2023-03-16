@@ -19,28 +19,50 @@ var SOCKET_LIST = {};
 var io = require('socket.io') (serv, {});
 
 io.sockets.on('connection', function(socket) {
+
+    // Setting up rooms for each pair of players
+    let roomNo = 1;
+    let noOfPlayers = 1;
+
+    // Keep track of number of players
+    for(let i in SOCKET_LIST) {
+        noOfPlayers++;
+        if(noOfPlayers % 2) {
+            roomNo++;
+        } 
+    }
+
     // Generate unique sockets for each player
     socket.id = Math.random();
+    socket.roomNo = roomNo;
     SOCKET_LIST[socket.id] = socket;
+    socket.join("room" + roomNo);
 
-    console.log(socket.id + ' connected');
-
+    // Check for disconnects
     socket.on('disconnect', function() {
         console.log(socket.id + ' disconnected');
+        noOfPlayers--;
         delete SOCKET_LIST[socket.id];
     });
 
+    console.log('Joined room:', roomNo);
+    // console.log('socket.roomNo:', socket.roomNo);
+    // console.log('room: ', socket.rooms);
+    // console.log('size:', io.sockets.adapter.rooms.get('room1').size);
+    // console.log(io.sockets.adapter.rooms.size);
+    // console.log(socket.id + ' connected');
+    // console.log('noOfPlayers: ', noOfPlayers);
+
+    
     // Receive move from a socket
     socket.on('move', function(data) {
 
-        // Send move to other sockets
+        // Send move to OTHER sockets
         for(let i in SOCKET_LIST) {
             const otherSocket = SOCKET_LIST[i];
-            if(!(otherSocket === socket)) {
-                console.log('sent to socket: ', i);
+            if(!(otherSocket === socket) && (otherSocket.roomNo === socket.roomNo)) { 
                 otherSocket.emit('receivedMove', data);
             }
-            
         }
     });
 
