@@ -74,14 +74,6 @@ h1 {
   color: #ffffff;
 }
 
-/* .start::after {
-  display: none;
-}
-
-/* .start.clicked ~ * {
-  display: none;
-} */ */
-
 .create {
   background-color: #2196F3;
   color: #ffffff;
@@ -92,14 +84,24 @@ h1 {
   color: #ffffff;
 }
 
+.refresh {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.8rem;
+  padding: 5px 10px
+}
+
 .button:hover {
   transform: scale(1.1);
 }
 
 .lobby-list {
-  display: none;
+  position: relative;
+  display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-top: 30px;
 }
 
 .lobby-item {

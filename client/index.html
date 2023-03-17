@@ -1,64 +1,65 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="client/style.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chess App</title>
-        <script
-            async
-            src="https://unpkg.com/es-module-shims@1.6.2/dist/es-module-shims.js"
-        ></script>
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet" href="client/style.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chess App</title>
+    <script
+        async
+        src="https://unpkg.com/es-module-shims@1.6.2/dist/es-module-shims.js"
+    ></script>
 
-        <script type="importmap">
-            {
-                "imports": {
-                    "three": "./build/three.module.js",
-                    "three/examples/jsm/controls/OrbitControls":"./jsm/controls/OrbitControls.js",
-                    "three/examples/jsm/loaders/GLTFLoader":"./jsm/loaders/GLTFLoader.js",
-                    "three/examples/jsm/renderers/CSS2DRenderer":"./jsm/renderers/CSS2DRenderer.js"
-                }
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./build/three.module.js",
+                "three/examples/jsm/controls/OrbitControls":"./jsm/controls/OrbitControls.js",
+                "three/examples/jsm/loaders/GLTFLoader":"./jsm/loaders/GLTFLoader.js",
+                "three/examples/jsm/renderers/CSS2DRenderer":"./jsm/renderers/CSS2DRenderer.js"
             }
-        </script>
-  </head>
-  <body>
-    <!-- <input id="startGame" type="button" class = "startButton" value="Start Game" /> -->
-    <!-- <input id="createRoom" type="button" class = "createRoomButton" value="Create Room" />
-    <input id="viewRooms" type="button" class = "viewRooms" value="View Rooms" />
-    
-    <div id="myDIV">
-      <div> 
-        <input id="startGame" type="button" class = "startButton" value="Start Game" />
-      </div>
-    </div> -->
-      <div id="scene-container">
-        <canvas
-        ></canvas>
-      </div>
-      
-      <div id = "menu" class="container">
-        <h1>Welcome to Online Chess!</h1>
-        <div class="buttons">
-            <button id = "startGame" class="button start clicked">Start Game</button>
-            <button id = "createRoom" class="button create">Create Lobby</button>
-            <button id = "viewLobbies" class="button join">View Lobbies</button>
-        </div>
-        <div id = "lobby list" class="lobby-list">
-            <!-- <div class="lobby-item">
-                <span class="room-number">Room 1</span>
-                <span class="room-players">2/2</span>
-                <span class="room-name">Beginner's Room</span>
-            </div> -->
-      </div>
+        }
+    </script>
+</head>
+<body>
+<!-- <input id="startGame" type="button" class = "startButton" value="Start Game" /> -->
+<!-- <input id="createRoom" type="button" class = "createRoomButton" value="Create Room" />
+<input id="viewRooms" type="button" class = "viewRooms" value="View Rooms" />
 
+<div id="myDIV">
+    <div> 
+    <input id="startGame" type="button" class = "startButton" value="Start Game" />
+    </div>
+</div> -->
+    <div id="scene-container">
+    <canvas
+    ></canvas>
+    </div>
+    
+    <div id = "menu" class="container">
+    <h1>Welcome to Online Chess!</h1>
+    <div class="buttons">
+        <button id = "startGame" class="button start clicked">Start Game</button>
+        <button id = "createRoom" class="button create">Create Lobby</button>
+        <button id = "viewLobbies" class="button join">View Lobbies</button>
+    </div>
+    <div id = "lobby list" class="lobby-list">
+        <button id = "refresh" class="button refresh">Refresh</button>
+        <!-- <div class="lobby-item">
+            <span class="room-number">Room 1</span>
+            <span class="room-players">2/2</span>
+            <span class="room-name">Beginner's Room</span>
+        </div> -->
     </div>
 
-    <script type="module" src="client/main.js"></script>
+</div>
+
+<script type="module" src="client/main.js"></script>
 
 
-    
-    <script src="https://cdn.socket.io/socket.io-3.0.0.js"></script>
 
-  </body>
+<script src="https://cdn.socket.io/socket.io-3.0.0.js"></script>
+
+</body>
 </html>
 

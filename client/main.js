@@ -510,10 +510,9 @@ function test(event) {
 function create_room(){
     const roomID = Math.floor((Math.random() * 100) + 1);
     socket.emit('createRoom', roomID);
-    socket.emit('updateRoomList', roomID);
 }
 
-function display_lobbies() {
+function display_rooms() {
     const lobbies = document.getElementById("lobby list");
     if (lobbies.style.display === "none") {
         lobbies.style.display = "block";
@@ -524,16 +523,16 @@ function display_lobbies() {
     
 }
 
-function add_lobby(lobby) {
+function add_room(room) {
     const lobbyList = document.getElementById('lobby list');
 
     const newLobbyItem = document.createElement('div');
     newLobbyItem.classList.add('lobby-item');
-    newLobbyItem.setAttribute('id', 'lobby' + lobby);
+    newLobbyItem.setAttribute('id', 'lobby' + room);
 
     const roomNumberSpan = document.createElement('span');
     roomNumberSpan.classList.add('room-number');
-    roomNumberSpan.textContent = lobby;
+    roomNumberSpan.textContent = 'Room ' + room;
 
     const roomPlayersSpan = document.createElement('span');
     roomPlayersSpan.classList.add('room-players');
@@ -550,6 +549,9 @@ function add_lobby(lobby) {
     lobbyList.appendChild(newLobbyItem);
 }
 
+function refresh_rooms() {
+    socket.emit('updateRoomList');
+}
 
 // Current Main
 window.onload = init();
@@ -560,19 +562,23 @@ startGame.addEventListener('click', init_game);
 const createRoom = document.getElementById("createRoom");
 createRoom.addEventListener('click', create_room);
 const viewLobbies = document.getElementById("viewLobbies");
-viewLobbies.addEventListener('click', display_lobbies);
+viewLobbies.addEventListener('click', display_rooms);
+const refreshRooms = document.getElementById("refresh");
+refreshRooms.addEventListener('click', refresh_rooms);
+
 
 // Display all available lobbies to the client
-socket.once('lobby', function(lobbies) {
-    console.log('lobbies received:', lobbies);
-    for(let lobby in lobbies) {
-        add_lobby(lobbies[lobby]);
+socket.on('fetchRooms', function(allRooms) {
+    for(let room in allRooms) {
+        add_room(allRooms[room]);
     }
 })
 
 // If new rooms is created, refresh all rooms of clients
-socket.on('refreshRooms', function(newRoom) {
-    add_lobby(newRoom);
+socket.on('refreshRooms', function(newRooms) {
+    for(let room in newRooms) {
+        add_room(newRooms[room]);
+    }
 });
 
 // Server sends a move that is played in game
