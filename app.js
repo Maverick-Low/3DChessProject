@@ -18,7 +18,7 @@ console.log('Server started at localhost:2000');
 var SOCKET_LIST = {};
 var io = require('socket.io') (serv, {});
 var allRooms = new Array();
-var socketsRooms = new Array();
+var socketsRooms = new Array(); // An array of objects to keep track of all the rooms that the client has not yet loaded into their lobby list
 
 io.sockets.on('connection', function(socket) {
     
@@ -26,6 +26,13 @@ io.sockets.on('connection', function(socket) {
     socket.on('disconnect', function() {
         console.log(socket.id + ' disconnected');
         delete SOCKET_LIST[socket.id];
+
+        // Delete socketsRoom object for that socket
+        const socketDC = socketsRooms.find((x) => x.socketID == socket.id);
+        const index = socketsRooms.indexOf(socketDC);
+        if (index !== -1) {
+            socketsRooms.splice(index, 1);
+        }
     });
 
     // Generate unique sockets for each player
@@ -33,6 +40,8 @@ io.sockets.on('connection', function(socket) {
     SOCKET_LIST[socket.id] = socket;
     socketsRooms.push({socketID: socket.id, newRooms: new Array()});
     console.log(socket.id + ' connected');
+    // console.log(socketsRooms);
+    console.log(io.sockets.adapter.rooms);
     
     // ---------------------------------------- Receive move from a socket ---------------------------------------- //
     socket.on('move', function(data) {
@@ -53,21 +62,24 @@ io.sockets.on('connection', function(socket) {
 
     // Create a room
     socket.on('createRoom', function(roomID) {
-        const room = roomID;
-        socket.join(room);
-        allRooms.push(room);
+        // Clients can only join 1 lobby
+        if(socket.rooms.size < 1) {
+            socket.join(roomID);
+            allRooms.push(roomID);
+            console.log(socket.rooms.size);
 
-        // Adding new rooms to an array for each socket so they can refresh and these rooms will be displayed
-        for(let i in SOCKET_LIST) {
-            const currentSocket = SOCKET_LIST[i];
-            const socketObject = socketsRooms.find((x) => x.socketID == currentSocket.id);
-            if(!socketObject.newRooms.includes(roomID)) {
-                socketObject.newRooms.push(roomID);
+            // Adding new rooms to an array for each socket so they can refresh and these rooms will be displayed
+            for(let i in SOCKET_LIST) {
+                const currentSocket = SOCKET_LIST[i];
+                const socketObject = socketsRooms.find((x) => x.socketID == currentSocket.id);
+                if(!socketObject.newRooms.includes(roomID)) {
+                    socketObject.newRooms.push(roomID);
+                }
             }
         }
+        
     });
     
-
     // Join room
     socket.on('joinRoom', function(room) {
         socket.join(room);

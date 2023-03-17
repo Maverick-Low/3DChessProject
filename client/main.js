@@ -547,6 +547,11 @@ function add_room(room) {
     newLobbyItem.appendChild(roomNameSpan);
 
     lobbyList.appendChild(newLobbyItem);
+
+    newLobbyItem.addEventListener('click', () => {
+        socket.emit('joinRoom', room);
+        console.log('CLCIEKD');
+    });
 }
 
 function refresh_rooms() {
@@ -559,13 +564,15 @@ window.onload = init();
 // HTML elements
 const startGame = document.getElementById("startGame");
 startGame.addEventListener('click', init_game);
+
 const createRoom = document.getElementById("createRoom");
 createRoom.addEventListener('click', create_room);
+
 const viewLobbies = document.getElementById("viewLobbies");
 viewLobbies.addEventListener('click', display_rooms);
+
 const refreshRooms = document.getElementById("refresh");
 refreshRooms.addEventListener('click', refresh_rooms);
-
 
 // Display all available lobbies to the client
 socket.on('fetchRooms', function(allRooms) {
