@@ -22,15 +22,41 @@
         </script>
   </head>
   <body>
-    <script type="module" src="client/main.js"></script>
     <!-- <input id="startGame" type="button" class = "startButton" value="Start Game" /> -->
+    <!-- <input id="createRoom" type="button" class = "createRoomButton" value="Create Room" />
+    <input id="viewRooms" type="button" class = "viewRooms" value="View Rooms" />
     
+    <div id="myDIV">
+      <div> 
+        <input id="startGame" type="button" class = "startButton" value="Start Game" />
+      </div>
+    </div> -->
+      <div id="scene-container">
+        <canvas
+        ></canvas>
+      </div>
+      
+      <div id = "menu" class="container">
+        <h1>Welcome to Online Chess!</h1>
+        <div class="buttons">
+            <button id = "startGame" class="button start clicked">Start Game</button>
+            <button id = "createRoom" class="button create">Create Lobby</button>
+            <button id = "viewLobbies" class="button join">View Lobbies</button>
+        </div>
+        <div id = "lobby list" class="lobby-list">
+            <!-- <div class="lobby-item">
+                <span class="room-number">Room 1</span>
+                <span class="room-players">2/2</span>
+                <span class="room-name">Beginner's Room</span>
+            </div> -->
+      </div>
 
-    <div id="scene-container">
-      <canvas
-      ></canvas>
     </div>
 
+    <script type="module" src="client/main.js"></script>
+
+
+    
     <script src="https://cdn.socket.io/socket.io-3.0.0.js"></script>
 
   </body>

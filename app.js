@@ -17,35 +17,37 @@ console.log('Server started at localhost:2000');
 
 var SOCKET_LIST = {};
 var io = require('socket.io') (serv, {});
+var lobbies = new Array();
+var count = 0;
 
 io.sockets.on('connection', function(socket) {
-
-    // Setting up rooms for each pair of players
-    let roomNo = 1;
-    let noOfPlayers = 1;
-
-    // Keep track of number of players
-    for(let i in SOCKET_LIST) {
-        noOfPlayers++;
-        if(noOfPlayers % 2) {
-            roomNo++;
-        } 
-    }
-
-    // Generate unique sockets for each player
-    socket.id = Math.random();
-    socket.roomNo = roomNo;
-    SOCKET_LIST[socket.id] = socket;
-    socket.join("room" + roomNo);
-
+    
+    
     // Check for disconnects
     socket.on('disconnect', function() {
         console.log(socket.id + ' disconnected');
-        noOfPlayers--;
         delete SOCKET_LIST[socket.id];
     });
 
-    console.log('Joined room:', roomNo);
+    // Generate unique sockets for each player
+    socket.id = Math.random();
+    SOCKET_LIST[socket.id] = socket;
+    console.log(socket.id + ' connected');
+    // ---------------------------------------- Set up rooms for pairs of players  ---------------------------------------- //
+    // let roomNo = 1;
+    // let noOfPlayers = 1;
+
+    // // Keep track of number of players
+    // for(let i in SOCKET_LIST) {
+    //     noOfPlayers++;
+    //     if(noOfPlayers % 2) {
+    //         roomNo++;
+    //     } 
+    // }
+
+    // socket.roomNo = roomNo;
+    // socket.join("room" + roomNo);
+    // console.log('Joined room:', roomNo);
     // console.log('socket.roomNo:', socket.roomNo);
     // console.log('room: ', socket.rooms);
     // console.log('size:', io.sockets.adapter.rooms.get('room1').size);
@@ -54,7 +56,7 @@ io.sockets.on('connection', function(socket) {
     // console.log('noOfPlayers: ', noOfPlayers);
 
     
-    // Receive move from a socket
+    // ---------------------------------------- Receive move from a socket ---------------------------------------- //
     socket.on('move', function(data) {
 
         // Send move to OTHER sockets
@@ -66,4 +68,27 @@ io.sockets.on('connection', function(socket) {
         }
     });
 
+    // ---------------------------------------- Handling rooms for sockets ---------------------------------------- //
+
+    // Send available lobbies on connect
+    socket.emit('lobby', lobbies);  
+
+    // Create a room
+    socket.on('createRoom', function(roomNo) {
+        const room = 'room' + roomNo;
+        socket.join(room);
+        lobbies.push(room);
+    });
+
+    // Join room
+    socket.on('joinRoom', function(room) {
+        socket.join(room);
+    });
+
+
+    // Update list of rooms
+    socket.on('updateRoomList', function(roomID) {
+        const newRoom = 'room' + roomID;
+        socket.broadcast.emit('refreshRooms', newRoom);    
+    });
 });

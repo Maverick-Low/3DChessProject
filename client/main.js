@@ -19,8 +19,6 @@ var socket = io();
 
 async function init() {
     // Scene
-    game = new Game();
-
     container = document.querySelector('#scene-container'); // The container that holds the scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color('grey');
@@ -36,28 +34,8 @@ async function init() {
     );
     container.append(renderer.domElement);
 
-    // // Create 2D Layer to display HTML
-    // renderer2D = new CSS2DRenderer();
-    // renderer2D.domElement.style.position = 'absolute';
-    // renderer2D.domElement.style.top = '0px';
-    // renderer2D.domElement.style.pointerEvents = 'none';
-    // container.append(renderer2D.domElement); 
-   
-    // const p3D = new CSS2DObject(p);
-    // scene.add(p3D);
-    // p3D.position.set(3.5,2,3.5);
-
-    // const div = document.createElement('div');
-    // const p = document.createElement('p');
-    // p.textContent = 'Hello';
-    // div.appendChild(p);
-    // const div3D = new CSS2DObject(div);
-    // scene.add(div3D);
-
-
-    // Raycasting
-    mouse = new THREE.Vector2();
-    raycaster = new THREE.Raycaster();
+    // Initialise window size
+    resize_window(container, camera, renderer);
 
     // Create controls
     controls = new OrbitControls(camera, renderer.domElement);
@@ -67,33 +45,53 @@ async function init() {
     controls.minDistance = 5;
     controls.enablePan = false;
     controls.enableDamping = true;
+    controls.enabled = false;
 
-    // Initialise window size
-    resize_window(container, camera, renderer);
-
-   
     // Add lights
     const light = new THREE.PointLight( 0xffffff, 2, 200 );
     light.position.set(3.5, 80, 3.5);
     scene.add(light);
-    // const light = new THREE.AmbientLight( 0x404040 ); // soft white light
-    // scene.add( light );
 
     // Add objects into scene
     const loader = new GLTFLoader();
     const room = await loader.loadAsync('client/assets/room.glb');
     room.scene.position.set(3.5, 0, 3.5);
     scene.add(room.scene);
+    
+    window.addEventListener('resize', () => resize_window(container, camera, renderer));
+    window.requestAnimationFrame(initial_animate);
+}
+
+function init_game() {
+    console.log('game Started');
+    game = new Game();
+
+    // Raycasting
+    mouse = new THREE.Vector2();
+    raycaster = new THREE.Raycaster();
+
+    // Enable controls
+    controls.enabled = true;
+
     create_board();
     fill_board();
-
     window.requestAnimationFrame(animate);
 
-    // scene.traverse((mesh) => {
-    //     if(!mesh.isGroup && !mesh.name === 'tile') {
-    //         console.log(mesh);
-    //     }
-    // })
+    // Add event listeners
+    window.addEventListener( 'click', select_piece);
+    window.addEventListener( 'contextmenu', deselect_piece);
+    window.addEventListener( 'mousemove', move_mouse, false );
+    window.addEventListener('keydown', print_board);
+    window.addEventListener('keydown', test);
+
+    // Hide lobby menu after 'Start Game' is clicked
+    const x = document.getElementById("menu");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } 
+    else {
+        x.style.display = "none";
+    }
 }
  
 function create_board() {
@@ -119,6 +117,12 @@ function create_board() {
         
     }
     scene.add(board);
+}
+
+function initial_animate() {
+    controls.update();
+    renderer.render(scene, camera);
+    window.requestAnimationFrame(initial_animate);
 }
 
 function animate() {
@@ -500,19 +504,78 @@ function test(event) {
     }
 }
 
-// var startGame = document.getElementById("startGame");
-// startGame.addEventListener('click', init)
+
+// --------------------------------------------- Functions for handing lobbies ----------------------------------------------------- //
+
+function create_room(){
+    const roomID = Math.floor((Math.random() * 100) + 1);
+    socket.emit('createRoom', roomID);
+    socket.emit('updateRoomList', roomID);
+}
+
+function display_lobbies() {
+    const lobbies = document.getElementById("lobby list");
+    if (lobbies.style.display === "none") {
+        lobbies.style.display = "block";
+    } 
+    else {
+        lobbies.style.display = "none";
+    }
+    
+}
+
+function add_lobby(lobby) {
+    const lobbyList = document.getElementById('lobby list');
+
+    const newLobbyItem = document.createElement('div');
+    newLobbyItem.classList.add('lobby-item');
+    newLobbyItem.setAttribute('id', 'lobby' + lobby);
+
+    const roomNumberSpan = document.createElement('span');
+    roomNumberSpan.classList.add('room-number');
+    roomNumberSpan.textContent = lobby;
+
+    const roomPlayersSpan = document.createElement('span');
+    roomPlayersSpan.classList.add('room-players');
+    roomPlayersSpan.textContent = '0/2';
+
+    const roomNameSpan = document.createElement('span');
+    roomNameSpan.classList.add('room-name');
+    roomNameSpan.textContent = 'New Room';
+
+    newLobbyItem.appendChild(roomNumberSpan);
+    newLobbyItem.appendChild(roomPlayersSpan);
+    newLobbyItem.appendChild(roomNameSpan);
+
+    lobbyList.appendChild(newLobbyItem);
+}
 
 
 // Current Main
 window.onload = init();
-window.addEventListener('resize', () => resize_window(container, camera, renderer));
-window.addEventListener( 'click', select_piece);
-window.addEventListener( 'contextmenu', deselect_piece);
-window.addEventListener( 'mousemove', move_mouse, false );
-window.addEventListener('keydown', print_board);
-window.addEventListener('keydown', test);
 
+// HTML elements
+const startGame = document.getElementById("startGame");
+startGame.addEventListener('click', init_game);
+const createRoom = document.getElementById("createRoom");
+createRoom.addEventListener('click', create_room);
+const viewLobbies = document.getElementById("viewLobbies");
+viewLobbies.addEventListener('click', display_lobbies);
+
+// Display all available lobbies to the client
+socket.once('lobby', function(lobbies) {
+    console.log('lobbies received:', lobbies);
+    for(let lobby in lobbies) {
+        add_lobby(lobbies[lobby]);
+    }
+})
+
+// If new rooms is created, refresh all rooms of clients
+socket.on('refreshRooms', function(newRoom) {
+    add_lobby(newRoom);
+});
+
+// Server sends a move that is played in game
 socket.on('receivedMove', function(data) {
     const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
     const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
