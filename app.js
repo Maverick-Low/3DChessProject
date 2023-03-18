@@ -41,7 +41,10 @@ io.sockets.on('connection', function(socket) {
     socketsRooms.push({socketID: socket.id, newRooms: new Array()});
     console.log(socket.id + ' connected');
     // console.log(socketsRooms);
-    console.log(io.sockets.adapter.rooms);
+    // console.log('got5: ',io.sockets.adapter.rooms.get(5));
+    // const clients = io.sockets.adapter.rooms.get(5);
+    // const numClients = clients ? clients.size : 0;
+    // console.log(numClients);
     
     // ---------------------------------------- Receive move from a socket ---------------------------------------- //
     socket.on('move', function(data) {
@@ -65,15 +68,16 @@ io.sockets.on('connection', function(socket) {
         // Clients can only join 1 lobby
         if(socket.rooms.size < 1) {
             socket.join(roomID);
-            allRooms.push(roomID);
-            console.log(socket.rooms.size);
+            allRooms.push({roomID: roomID, noOfPlayers: 1});
 
             // Adding new rooms to an array for each socket so they can refresh and these rooms will be displayed
             for(let i in SOCKET_LIST) {
                 const currentSocket = SOCKET_LIST[i];
                 const socketObject = socketsRooms.find((x) => x.socketID == currentSocket.id);
                 if(!socketObject.newRooms.includes(roomID)) {
-                    socketObject.newRooms.push(roomID);
+                    const room = io.sockets.adapter.rooms.get(roomID);
+                    const roomSize = room? room.size : 0;
+                    socketObject.newRooms.push({roomID: roomID, noOfPlayers: roomSize});
                 }
             }
         }
@@ -81,14 +85,21 @@ io.sockets.on('connection', function(socket) {
     });
     
     // Join room
-    socket.on('joinRoom', function(room) {
-        socket.join(room);
+    socket.on('joinRoom', function(roomID) {
+        const room = io.sockets.adapter.rooms.get(roomID);
+        let roomSize = room? room.size : 0;
+        if(roomSize < 2 && socket.rooms.size === 0) {
+            socket.join(roomID);
+            roomSize = room? room.size : 0;
+            const currentAllRoom = allRooms.find((x) => x.roomID == roomID);
+            currentAllRoom.noOfPlayers = roomSize;
+        }
     });
 
     // Update list of rooms
     socket.on('updateRoomList', function() {
         const socketObject = socketsRooms.find((x) => x.socketID == socket.id);
-        socket.emit('refreshRooms', socketObject.newRooms);
+        socket.emit('refreshRooms', socketObject.newRooms, allRooms);
         socketObject.newRooms = [];
     });
 });

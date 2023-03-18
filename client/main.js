@@ -523,20 +523,20 @@ function display_rooms() {
     
 }
 
-function add_room(room) {
+function add_room(roomObject) {
     const lobbyList = document.getElementById('lobby list');
 
     const newLobbyItem = document.createElement('div');
     newLobbyItem.classList.add('lobby-item');
-    newLobbyItem.setAttribute('id', 'lobby' + room);
 
     const roomNumberSpan = document.createElement('span');
     roomNumberSpan.classList.add('room-number');
-    roomNumberSpan.textContent = 'Room ' + room;
+    roomNumberSpan.textContent = 'Room ' + roomObject.roomID;
 
     const roomPlayersSpan = document.createElement('span');
     roomPlayersSpan.classList.add('room-players');
-    roomPlayersSpan.textContent = '0/2';
+    roomPlayersSpan.textContent = roomObject.noOfPlayers + '/2';
+    roomPlayersSpan.setAttribute('id', roomObject.roomID);
 
     const roomNameSpan = document.createElement('span');
     roomNameSpan.classList.add('room-name');
@@ -549,8 +549,7 @@ function add_room(room) {
     lobbyList.appendChild(newLobbyItem);
 
     newLobbyItem.addEventListener('click', () => {
-        socket.emit('joinRoom', room);
-        console.log('CLCIEKD');
+        socket.emit('joinRoom', roomObject.roomID);
     });
 }
 
@@ -574,7 +573,7 @@ viewLobbies.addEventListener('click', display_rooms);
 const refreshRooms = document.getElementById("refresh");
 refreshRooms.addEventListener('click', refresh_rooms);
 
-// Display all available lobbies to the client
+// Display all available lobbies to the client on connect 
 socket.on('fetchRooms', function(allRooms) {
     for(let room in allRooms) {
         add_room(allRooms[room]);
@@ -582,10 +581,16 @@ socket.on('fetchRooms', function(allRooms) {
 })
 
 // If new rooms is created, refresh all rooms of clients
-socket.on('refreshRooms', function(newRooms) {
+socket.on('refreshRooms', function(newRooms, allRooms) {
     for(let room in newRooms) {
         add_room(newRooms[room]);
     }
+
+    for(let room in allRooms) {
+        const noOfPlayers = document.getElementById(allRooms[room].roomID);
+        noOfPlayers.textContent = allRooms[room].noOfPlayers + '/2';
+    }
+    
 });
 
 // Server sends a move that is played in game
