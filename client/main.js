@@ -1,13 +1,13 @@
 import * as THREE from 'three'
+import gsap from 'gsap';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';                 
 import { Rook, Knight, King, Pawn, Queen, Bishop } from './ChessEngine/Pieces.js';
 import { Game } from './ChessEngine/Game.js';
 import { Move } from './ChessEngine/Move.js';
 
 
-var scene, camera, renderer, controls, container, mouse, raycaster, renderer2D;
+var scene, camera, renderer, controls, container, mouse, raycaster;
 var board, game;
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;
 var fileName = 'client/assets/ChessSet-Normal-1.glb';
@@ -21,12 +21,12 @@ async function init() {
     // Scene
     container = document.querySelector('#scene-container'); // The container that holds the scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('grey');
+    scene.background = new THREE.Color('dark grey');
 
     // Camera
     const aspectRatio = container.clientWidth / container.clientHeight;
-    camera = new THREE.PerspectiveCamera(60, aspectRatio , 0.1, 100);
-    camera.position.set(3.5, 6, 10);
+    camera = new THREE.PerspectiveCamera(45, aspectRatio , 0.1, 1000);
+    camera.position.set(-100, 60, 100);
 
     // Renderer
     renderer = new THREE.WebGLRenderer(
@@ -39,12 +39,6 @@ async function init() {
 
     // Create controls
     controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(3.5, 0, 3.5); 
-    controls.maxPolarAngle = Math.PI/2;
-    controls.maxDistance = 20;
-    controls.minDistance = 5;
-    controls.enablePan = false;
-    controls.enableDamping = true;
     controls.enabled = false;
 
     // Add lights
@@ -66,13 +60,31 @@ function init_game() {
     console.log('game Started');
     game = new Game();
 
+    // Pan camera over to board
+    gsap.to(camera.position, {
+        x: 3.5,
+        y: 10,
+        z: 15,
+        duration: 3,
+        onUpdate: function() {
+            controls.target.set(3.5, 0, 3.5); 
+        },
+        onComplete: function() {
+            controls.maxPolarAngle = Math.PI/2;
+            controls.maxDistance = 15;
+            controls.minDistance = 5;
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            controls.enabled = true;
+        }
+    });
+
     // Raycasting
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
 
-    // Enable controls
-    controls.enabled = true;
-
+   
+    
     create_board();
     fill_board();
     window.requestAnimationFrame(animate);
