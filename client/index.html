@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<link rel="stylesheet" href="client/style.css" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Chess App</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="client/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess App</title>
     <script
         async
         src="https://unpkg.com/es-module-shims@1.6.2/dist/es-module-shims.js"
@@ -32,27 +32,97 @@
     </div>
 </div> -->
     <div id="scene-container">
-    <canvas
-    ></canvas>
+        <canvas
+        ></canvas>
     </div>
     
-    <div id = "menu" class="container">
-    <h1>Welcome to Online Chess!</h1>
-    <div class="buttons">
-        <button id = "startGame" class="button start clicked">Start Game</button>
-        <button id = "createRoom" class="button create">Create Lobby</button>
-        <button id = "viewLobbies" class="button join">View Lobbies</button>
-    </div>
-    <div id = "lobby list" class="lobby-list">
-        <button id = "refresh" class="button refresh">Refresh</button>
-        <!-- <div id = "test" class="lobby-item">
-            <span class="room-number">Room 1</span>
-            <span class="room-players">2/2</span>
-            <span class="room-name">Beginner's Room</span>
-        </div> -->
-    </div>
+    <!-- <div id = "menu" class="container">
+        <h1>Welcome to Online Chess!</h1>
+        
+        <div class="buttons">
+            <button id = "startGame" class="button start clicked">Start Game</button>
+            <button id = "createRoom" class="button create">Create Lobby</button>
+            <button id = "viewLobbies" class="button join">View Lobbies</button>
+        </div>
 
-</div>
+        <div id = "lobby list" class="lobby-list">
+            <button id = "refresh" class="button refresh">Refresh</button>
+            <div id = "test" class="lobby-item">
+                <span class="room-number">Room 1</span>
+                <span class="room-players">2/2</span>
+                <span class="room-name">Beginner's Room</span>
+            </div>
+        </div>
+    </div> -->
+
+    <script
+        defer
+        src="https://unpkg.com/custom-cursor@latest/dist/cursor.min.js"
+    ></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          new window['Cursor']({
+            targets: ['square']
+          })
+        })
+      </script>
+
+    <div id = "menu" class="container">
+
+        <a href="#"> 
+            <div id = "startGame" class="square start">
+                <span></span>
+                <span></span>
+                <span></span>
+                <div class="content">
+                    <h2> Start Game </h2>
+                </div>
+            </div>
+        </a>
+
+        <a href="#"> 
+            <div id = "createRoom" class="square create">
+                <span></span>
+                <span></span>
+                <span></span>
+                <div class="content">
+                    <h2> Create Lobby </h2>
+                </div>
+            </div>
+        </a>
+
+        <a href="#lobbyMenu"> 
+            <div id = "viewLobbies" class="square view">
+                <span></span>
+                <span></span>
+                <span></span>
+                <div class="content">
+                    <h2> Show Lobbies </h2>
+                </div>
+            </div>
+        </a>
+
+        <div class="popover" id="lobbyMenu">
+            <div class = 'content'>
+                <a href="#" class="close"></a>
+                <a id = "refresh" href="#lobbyMenu" class="refresh"></a>
+                <div class = 'nav'>
+                    <ul class = 'nav_list'>
+                        <!-- <div class = 'nav_list_item'>
+                            <li>
+                                <a href="#">
+                                    <span class="room-number">Room 1</span>
+                                    <span class="room-players">2/2</span>
+                                    <span class="room-name">Beginner's Room</span>
+                                </a>
+                            </li>
+                        </div> -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <script type="module" src="client/main.js"></script>
 

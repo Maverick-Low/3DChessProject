@@ -81,17 +81,10 @@ function init_game() {
     window.addEventListener( 'click', select_piece);
     window.addEventListener( 'contextmenu', deselect_piece);
     window.addEventListener( 'mousemove', move_mouse, false );
-    window.addEventListener('keydown', print_board);
-    window.addEventListener('keydown', test);
 
     // Hide lobby menu after 'Start Game' is clicked
-    const x = document.getElementById("menu");
-    if (x.style.display === "none") {
-        x.style.display = "block";
-    } 
-    else {
-        x.style.display = "none";
-    }
+    const menu = document.getElementById("menu");
+    menu.style.display = "none"
 }
  
 function create_board() {
@@ -500,7 +493,8 @@ function print_board(event) {
 function test(event) {
     var key = event.which || event.keyCode
     if(key === 80) {
-       console.log(game.board); 
+        console.log('work');
+        delete_all_rooms();
     }
 }
 
@@ -512,49 +506,34 @@ function create_room(){
     socket.emit('createRoom', roomID);
 }
 
-function display_rooms() {
-    const lobbies = document.getElementById("lobby list");
-    if (lobbies.style.display === "none") {
-        lobbies.style.display = "block";
-    } 
-    else {
-        lobbies.style.display = "none";
-    }
-    
-}
-
 function add_room(roomObject) {
-    const lobbyList = document.getElementById('lobby list');
 
-    const newLobbyItem = document.createElement('div');
-    newLobbyItem.classList.add('lobby-item');
+    // Get the parent element
+    const lobbyList = document.querySelector('.nav_list');
 
-    const roomNumberSpan = document.createElement('span');
-    roomNumberSpan.classList.add('room-number');
-    roomNumberSpan.textContent = 'Room ' + roomObject.roomID;
+    // Create the new element
+    const newRoom = document.createElement('div');
+    newRoom.classList.add('nav_list_item');
+    newRoom.innerHTML = `
+    <li>
+        <a href="#">
+            <span class="room-number">Room` + roomObject.roomID + `:    </span>
+            <span class="room-players">` + roomObject.noOfPlayers + `/2</span>
+        </a>
+    </li>
+    `;
 
-    const roomPlayersSpan = document.createElement('span');
-    roomPlayersSpan.classList.add('room-players');
-    roomPlayersSpan.textContent = roomObject.noOfPlayers + '/2';
-    roomPlayersSpan.setAttribute('id', roomObject.roomID);
+    // Append the new element to the parent element
+    lobbyList.appendChild(newRoom);
 
-    const roomNameSpan = document.createElement('span');
-    roomNameSpan.classList.add('room-name');
-    roomNameSpan.textContent = 'New Room';
-
-    newLobbyItem.appendChild(roomNumberSpan);
-    newLobbyItem.appendChild(roomPlayersSpan);
-    newLobbyItem.appendChild(roomNameSpan);
-
-    lobbyList.appendChild(newLobbyItem);
-
-    newLobbyItem.addEventListener('click', () => {
+    newRoom.addEventListener('click', () => {
         socket.emit('joinRoom', roomObject.roomID);
     });
 }
 
-function refresh_rooms() {
-    socket.emit('updateRoomList');
+function delete_all_rooms() {
+    const lobbyItems = document.querySelectorAll('.nav_list_item');
+    lobbyItems.forEach(item => item.remove());
 }
 
 // Current Main
@@ -567,11 +546,11 @@ startGame.addEventListener('click', init_game);
 const createRoom = document.getElementById("createRoom");
 createRoom.addEventListener('click', create_room);
 
-const viewLobbies = document.getElementById("viewLobbies");
-viewLobbies.addEventListener('click', display_rooms);
-
 const refreshRooms = document.getElementById("refresh");
-refreshRooms.addEventListener('click', refresh_rooms);
+refreshRooms.addEventListener('click', () => {
+    delete_all_rooms();
+    socket.emit('updateRoomList');
+});
 
 // Display all available lobbies to the client on connect 
 socket.on('fetchRooms', function(allRooms) {
@@ -579,19 +558,6 @@ socket.on('fetchRooms', function(allRooms) {
         add_room(allRooms[room]);
     }
 })
-
-// If new rooms is created, refresh all rooms of clients
-socket.on('refreshRooms', function(newRooms, allRooms) {
-    for(let room in newRooms) {
-        add_room(newRooms[room]);
-    }
-
-    for(let room in allRooms) {
-        const noOfPlayers = document.getElementById(allRooms[room].roomID);
-        noOfPlayers.textContent = allRooms[room].noOfPlayers + '/2';
-    }
-    
-});
 
 // Server sends a move that is played in game
 socket.on('receivedMove', function(data) {
@@ -601,3 +567,7 @@ socket.on('receivedMove', function(data) {
     const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
     move_piece3D(piece3D, move);
 });
+
+
+window.addEventListener('keydown', print_board);
+window.addEventListener('keydown', test);

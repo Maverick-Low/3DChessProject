@@ -18,7 +18,6 @@ console.log('Server started at localhost:2000');
 var SOCKET_LIST = {};
 var io = require('socket.io') (serv, {});
 var allRooms = new Array();
-var socketsRooms = new Array(); // An array of objects to keep track of all the rooms that the client has not yet loaded into their lobby list
 
 io.sockets.on('connection', function(socket) {
     
@@ -27,18 +26,11 @@ io.sockets.on('connection', function(socket) {
         console.log(socket.id + ' disconnected');
         delete SOCKET_LIST[socket.id];
 
-        // Delete socketsRoom object for that socket
-        const socketDC = socketsRooms.find((x) => x.socketID == socket.id);
-        const index = socketsRooms.indexOf(socketDC);
-        if (index !== -1) {
-            socketsRooms.splice(index, 1);
-        }
     });
 
     // Generate unique sockets for each player
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
-    socketsRooms.push({socketID: socket.id, newRooms: new Array()});
     console.log(socket.id + ' connected');
     // console.log(socketsRooms);
     // console.log('got5: ',io.sockets.adapter.rooms.get(5));
@@ -69,17 +61,6 @@ io.sockets.on('connection', function(socket) {
         if(socket.rooms.size < 1) {
             socket.join(roomID);
             allRooms.push({roomID: roomID, noOfPlayers: 1});
-
-            // Adding new rooms to an array for each socket so they can refresh and these rooms will be displayed
-            for(let i in SOCKET_LIST) {
-                const currentSocket = SOCKET_LIST[i];
-                const socketObject = socketsRooms.find((x) => x.socketID == currentSocket.id);
-                if(!socketObject.newRooms.includes(roomID)) {
-                    const room = io.sockets.adapter.rooms.get(roomID);
-                    const roomSize = room? room.size : 0;
-                    socketObject.newRooms.push({roomID: roomID, noOfPlayers: roomSize});
-                }
-            }
         }
         
     });
@@ -96,10 +77,9 @@ io.sockets.on('connection', function(socket) {
         }
     });
 
-    // Update list of rooms
+    // // Update list of rooms
     socket.on('updateRoomList', function() {
-        const socketObject = socketsRooms.find((x) => x.socketID == socket.id);
-        socket.emit('refreshRooms', socketObject.newRooms, allRooms);
-        socketObject.newRooms = [];
+        socket.emit('fetchRooms', allRooms);  
     });
+
 });
