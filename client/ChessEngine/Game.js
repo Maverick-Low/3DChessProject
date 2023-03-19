@@ -1,16 +1,15 @@
 import { Board } from "./Board.js";
-import { Player } from "./Player.js";
 import { Rook, King, Pawn, Queen, Bishop } from './Pieces.js';
 import { Move } from "./Move.js";
 
 export class Game {
 
-    constructor() {
-        this.players = this.create_two_players();
+    constructor(players = []) {
+        this.players = players;
         this.board = this.create_board();
         this.status = this.gameStatus.active;
         this.movesList = new Array();
-        this.currentTurn = this.players[0];
+        this.currentTurn = players[0].isWhite? players[0] : players[1];
         this.whitePieceSet = this.create_pieceSet('white');
         this.blackPieceSet = this.create_pieceSet('black');
     }
@@ -25,12 +24,12 @@ export class Game {
 
     // --------------------------------------------- Functions for initialising game  ----------------------------------------------------- //
 
-    create_two_players() {
-        const players = new Array(2);
-        players[0] = new Player(true);
-        players[1] = new Player(false);
-        return players;
-    }
+    // create_two_players() {
+    //     const players = new Array(2);
+    //     players[0] = new Player(true);
+    //     players[1] = new Player(false);
+    //     return players;
+    // }
 
     create_board() {
         const board = new Board();

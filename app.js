@@ -39,7 +39,17 @@ io.sockets.on('connection', function(socket) {
     // const numClients = clients ? clients.size : 0;
     // console.log(numClients);
     
-    // ---------------------------------------- Receive move from a socket ---------------------------------------- //
+    // ---------------------------------------- Handling online game ---------------------------------------- //
+    
+    // socket.on('getColor', function() {
+    //     const colors = ['white', 'black'];
+    //     const randomColor =  Math.floor(Math.random() * colors.length);
+    //     socket.emit('color', colors[randomColor]);
+    // });
+    
+    const colors = ['white', 'black'];
+    const randomColor =  Math.round(Math.random());
+    socket.emit('color', colors[randomColor]);
     socket.on('move', function(data) {
 
         // Send move to OTHER sockets

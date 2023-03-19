@@ -5,23 +5,21 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { Rook, Knight, King, Pawn, Queen, Bishop } from './ChessEngine/Pieces.js';
 import { Game } from './ChessEngine/Game.js';
 import { Move } from './ChessEngine/Move.js';
+import { Player } from './ChessEngine/Player.js';
 
-
-var scene, camera, renderer, controls, container, mouse, raycaster;
-var board, game;
-var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;
+var scene, camera, renderer, controls, container, mouse, raycaster, loader, chessMesh;  // Global ThreeJS variables
+var board, game, players = new Array(2);                                                // Global game variables
+var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variales for pieces
 var fileName = 'client/assets/ChessSet-Normal-1.glb';
 var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
 var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
-var loader, chessMesh;
 var socket = io();
-
 
 async function init() {
     // Scene
     container = document.querySelector('#scene-container'); // The container that holds the scene
     scene = new THREE.Scene();
-    scene.background = new THREE.Color('dark grey');
+    scene.background = new THREE.Color(0x87CEEB);
 
     // Camera
     const aspectRatio = container.clientWidth / container.clientHeight;
@@ -57,14 +55,18 @@ async function init() {
 }
 
 function init_game() {
-    console.log('game Started');
-    game = new Game();
+
+    // socket.emit('getColor');
+    // Get players color
+
+    console.log(players);
+    game = new Game(players);
 
     // Pan camera over to board
     gsap.to(camera.position, {
         x: 3.5,
         y: 10,
-        z: 15,
+        z: players[0].isWhite? 15: -7,
         duration: 3,
         onUpdate: function() {
             controls.target.set(3.5, 0, 3.5); 
@@ -83,8 +85,6 @@ function init_game() {
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
 
-   
-    
     create_board();
     fill_board();
     window.requestAnimationFrame(animate);
@@ -252,13 +252,13 @@ function highlight_piece(){
         
         if(intersects.length > 0 && (isBlack || isWhite)) {
             const object = intersects[lengthToPiece].object;
-            if(isWhite && game.currentTurn.isWhite) {
+            if(isWhite && game.currentTurn.isWhite && players[0].isWhite) {
                 const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
                 object.material = lightMaterial;
                 object.material.transparent = true;
                 object.material.opacity = 0.5;  
             }
-            else if(isBlack && !game.currentTurn.isWhite){
+            else if(isBlack && !game.currentTurn.isWhite && !players[0].isWhite){
                 const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
                 object.material =  darkMaterial;
                 object.material.transparent = true;
@@ -325,7 +325,7 @@ function reset_tile_materials() {
 function highlight_kings_tile(){
     const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
     const kings = game.get_king_positions();
-    const kingInCheck = game.currentTurn === game.players[0]? kings[0] : kings[1];
+    const kingInCheck = game.currentTurn === players[0]? kings[0] : kings[1];
     const kingIsChecked = game.king_is_checked();
     const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
 
@@ -352,12 +352,18 @@ function select_piece() {
     let intersects = raycaster.intersectObjects(scene.children);
     // Get the selected piece
     if(!selected && intersects.length > 0) {
-        whitesTurn = game.currentTurn === game.players[0];
+        whitesTurn = game.currentTurn === players.find(player => player.isWhite === true);
         selected = intersects[lengthToPiece].object.userData.currentSquare;
         let selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
 
-        // Alternates moves
-        if ((whitesTurn && !selectedPiece.name.includes('white')) ||  (!whitesTurn && !selectedPiece.name.includes('black')) ){
+        // // Alternates moves for local play
+        // if ((whitesTurn && !selectedPiece.name.includes('white')) ||  (!whitesTurn && !selectedPiece.name.includes('black')) ){
+        //     selected = null;
+        //     selectedPiece = null;
+        // }
+
+        // Alternates moves for online play
+        if (((whitesTurn || players[0].isWhite) && !selectedPiece.name.includes('white')) ||  ((!whitesTurn || !players[0].isWhite) && !selectedPiece.name.includes('black'))  ){
             selected = null;
             selectedPiece = null;
         }
@@ -421,7 +427,7 @@ function move_piece3D(piece3D, move) {
     game.update_pieceSet(move);
     game.move_piece(move);
     promote_pawn(move, piece3D);
-    game.currentTurn = game.currentTurn === game.players[0]? game.players[1] : game.players[0];
+    game.currentTurn = game.currentTurn === players[0]? players[1] : players[0];
     reset_tile_materials();
 }
 
@@ -505,7 +511,7 @@ function print_board(event) {
 function test(event) {
     var key = event.which || event.keyCode
     if(key === 80) {
-        console.log('work');
+        console.log(game.board);
         delete_all_rooms();
     }
 }
@@ -580,6 +586,17 @@ socket.on('receivedMove', function(data) {
     move_piece3D(piece3D, move);
 });
 
+socket.on('color', function(color) {
+    console.log('color:', color);
+    if(color === 'white') {
+        players[0] = new Player(true);
+        players[1] = new Player(false);
+    }
+    else {
+        players[0] = new Player(false);
+        players[1] = new Player(true);
+    }
+});
 
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
