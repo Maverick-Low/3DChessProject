@@ -9,67 +9,67 @@
 /* Rendered scene */
 
 canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 #scene-container {
-  margin-left: auto;
-  margin-right: auto;
-	width: 100vw;
-	height: 100vh;
-	background: rgb(135, 206, 235);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100vw;
+    height: 100vh;
+    background: rgb(135, 206, 235);
 }
 
 /* Cursor */
 
 [data-cursor] {
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(
-    120deg,
-    #ff1744,
-    #e040fb,
-    #2979ff,
-    #00e5ff,
-    #76ff03
-  );
-  background-size: 1600% 1600%;
-  mix-blend-mode: difference;
-  pointer-events: none;
-  z-index: 50;
-  transition: 0.15s linear;
-  animation: blobRadius 5s ease infinite, blobBackground 15s ease infinite;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(
+        120deg,
+        #ff1744,
+        #e040fb,
+        #2979ff,
+        #00e5ff,
+        #76ff03
+    );
+    background-size: 1600% 1600%;
+    mix-blend-mode: difference;
+    pointer-events: none;
+    z-index: 50;
+    transition: 0.15s linear;
+    animation: blobRadius 5s ease infinite, blobBackground 15s ease infinite;
 }
 
 @keyframes blobRadius {
-  0%,
-  100% {
-    border-radius: 43% 77% 80% 40% / 40% 40% 80% 80%;
-  }
-  20% {
-    border-radius: 47% 73% 61% 59% / 47% 75% 45% 73%;
-  }
-  40% {
-    border-radius: 46% 74% 74% 46% / 74% 58% 62% 46%;
-  }
-  60% {
-    border-radius: 47% 73% 61% 59% / 40% 40% 80% 80%;
-  }
-  80% {
-    border-radius: 50% 70% 52% 68% / 51% 61% 59% 69%;
-  }
+    0%,
+    100% {
+        border-radius: 43% 77% 80% 40% / 40% 40% 80% 80%;
+    }
+    20% {
+        border-radius: 47% 73% 61% 59% / 47% 75% 45% 73%;
+    }
+    40% {
+        border-radius: 46% 74% 74% 46% / 74% 58% 62% 46%;
+    }
+    60% {
+        border-radius: 47% 73% 61% 59% / 40% 40% 80% 80%;
+    }
+    80% {
+        border-radius: 50% 70% 52% 68% / 51% 61% 59% 69%;
+    }
 }
 
 @keyframes blobBackground {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
 }
 
 .cursor-hover--square [data-cursor] {
@@ -114,8 +114,8 @@ body {
 .square {
     position: relative;
     margin: 0 10px;
-    width: 400px;
-    height: 400px;
+    aspect-ratio: 1/1;
+    max-width: 500px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -232,99 +232,99 @@ body {
 /* Lobby Menu */
 
 * {
-  margin: 0;
-  padding: 0;
-}
+    margin: 0;
+    padding: 0;
+    }
 
 .container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  scroll-behavior: smooth;
-  background: #1313136e;
-  font-family:'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    scroll-behavior: smooth;
+    background: #1313136e;
+    font-family:'Helvetica Neue', sans-serif;
 }
 
 .popover {
- display: none;
- box-shadow: 0px 6px 8px rgba(19, 19, 19, .7);
+    display: none;
+    box-shadow: 0px 6px 8px rgba(19, 19, 19, .7);
 }
 
 .popover:target {
-position: absolute;
-right: 0;
-top: 0;
-width: 100%;
-height: 100%;
-display: flex;
-align-items: center;
-justify-content: center;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .popover .content {
-display: flex;
-justify-content: center;
-position: relative;
-width: 0;
-height: 0;
-color: #fff;
-background-color: #191919;
-animation: 1s grow ease forwards;
-text-align: center;
-overflow: auto;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 0;
+    height: 0;
+    color: #fff;
+    background-color: #191919;
+    animation: 1s grow ease forwards;
+    text-align: center;
+    overflow: auto;
 }
 
 .nav_list  {
-list-style-type: none;
+    list-style-type: none;
 }
 
 .nav_list a {
-text-decoration: none;
-font-size: 20px;
-color: #fff;
+    text-decoration: none;
+    font-size: 20px;
+    color: #fff;
 }
 
 .nav_list a {
-  position: relative;
-  display: inline-block;
-  margin-top: 10px;
-  border: 2px solid #fff;
-  padding: 6px 18px;
-  text-decoration: none;
-  color: #fff;
-  font-weight: 400;
-  border-radius: 73% 27% 44% 56% / 49% 44% 56% 51%;
+    position: relative;
+    display: inline-block;
+    margin-top: 10px;
+    border: 2px solid #fff;
+    padding: 6px 18px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 400;
+    border-radius: 73% 27% 44% 56% / 49% 44% 56% 51%;
 }
 
 .nav_list a:hover {
-  background: white;
-  color: #333;
+    background: white;
+    color: #333333;
 }
 
 .nav_list_item {
-height: 100%;
-overflow: hidden;
+    height: 100%;
+    overflow: hidden;
 }
 
 .nav_list li {
-padding: 15px 0;
-text-transform: uppercase;
-transform: translateY(200px);
-opacity: 0;
-animation: 2s slideUp ease forwards .5s;
-position: relative;
+    padding: 15px 0;
+    text-transform: uppercase;
+    transform: translateY(200px);
+    opacity: 0;
+    animation: 2s slideUp ease forwards .5s;
+    position: relative;
 }
 
 .nav_list li::before {
-content: '';
-position: absolute;
-height: 2px;
-width: 0px;
-left: 0;
-bottom: 10px;
-background: #BF2E97; 
-transition: all .5s ease;
+    content: '';
+    position: absolute;
+    height: 2px;
+    width: 0px;
+    left: 0;
+    bottom: 10px;
+    background: #BF2E97; 
+    transition: all .5s ease;
 }
 
 .nav_list li:hover:before {
@@ -332,66 +332,215 @@ transition: all .5s ease;
 }
 
 .popover p {
-padding: 50px;
-opacity: 0;
-animation: 1s fadeIn ease forwards 1s;
+    padding: 50px;
+    opacity: 0;
+    animation: 1s fadeIn ease forwards 1s;
 }
 
 .popover .close::after {
-right: 0;
-top: 0;
-width: 50px;
-height: 50px;
-position: absolute;
-display: flex;
-z-index: 1;
-font-size: 30px;
-align-items: center;
-justify-content: center;
-background-color: #BF2E97;
-color: #fff;
-content: "×";
-cursor: pointer;
-opacity: 0; 
-animation: 1s fadeIn ease forwards .5s;
+    right: 0;
+    top: 0;
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    background-color: #BF2E97;
+    color: #fff;
+    content: "×";
+    cursor: pointer;
+    opacity: 0; 
+    animation: 1s fadeIn ease forwards .5s;
 }
 
 .popover .refresh::after {
-  left: 0;
-  top: 0;
-  width: 150px;
-  height: 70px;
-  position: absolute;
-  display: flex;
-  z-index: 1;
-  font-size: 30px;
-  /* align-items: center; */
-  justify-content: center;
-  background-color: #BF2E97;
-  color: #fff;
-  content: "Refresh";
-  cursor: pointer;
-  opacity: 0; 
-  animation: 1s fadeIn ease forwards .5s;
-  padding: 0px 20px;
+    left: 0;
+    top: 0;
+    width: 150px;
+    height: 70px;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 30px;
+    /* align-items: center; */
+    justify-content: center;
+    background-color: #BF2E97;
+    color: #fff;
+    content: "Refresh";
+    cursor: pointer;
+    opacity: 0; 
+    animation: 1s fadeIn ease forwards .5s;
+    padding: 0px 20px;
   }
 
-@keyframes grow {
-100% {
-  height: 90%;
-  width: 90%;
+.popover .exit::after {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 250px;
+    height: 60px;
+    display: flex;
+    z-index: 100;
+    background-color: #BF2E97;
+    color: #fff;
+    content: "Leave Lobby";
+    font-size: 30px;
+    justify-content: center;
+    align-content: center;
+    cursor: pointer;
+    opacity: 0; 
+    animation: 1s fadeIn ease forwards .5s;
+    /* padding: 0px 10px; */
 }
+
+
+@keyframes grow {
+    100% {
+    height: 90%;
+    width: 90%;
+    }
 }
 
 @keyframes fadeIn {
-100% {
-opacity: 1;
-}
+    100% {
+    opacity: 1;
+    }
 }
 
 @keyframes slideUp {
-100% {
-  transform: translateY(0);
-  opacity: 1;
+    100% {
+    transform: translateY(0);
+    opacity: 1;
+    }
 }
+
+
+#lobbyContent {
+    margin: 0;
+    display: grid;
+    /* place-items: center; */
+    /* background:
+      radial-gradient(at 100% 50%, #ee0c, #ee00),
+      radial-gradient(at 0 0, #9f98, #9f90),
+      linear-gradient(#09fc, #f09c) */
+    padding: 40px 60px;
+    color: #fff;
+    text-align: center;
+    justify-content: center;
+    transition: 0.5s;
+    z-index: 1000;
 }
+  
+  .badge {
+    display: flex;
+    /* height: 10%;
+    width: 35%; */
+    height: 5rem;
+    width: 20rem;
+    text-decoration: none;
+    font-family: Helvetica, Arial, sans-serif;
+    filter: drop-shadow(0 0 0.5rem #0003)
+  }
+
+  .you {
+    position: relative;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%);
+  }
+
+  .opponent {
+    position: relative;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%);
+  }
+  
+  
+  .badge img {
+    clip-path: polygon(0 50%, 14% 0, 86% 0, 100% 50%, 86% 100%, 14% 100%);
+  }
+  
+  .badge > div {
+    background: linear-gradient(#fff, #e8e8e8);
+    flex: 1;
+    /* padding: 0.75rem 0.75rem 0 1.25rem; */
+    clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 50%);
+  }
+  
+  .badge .name {
+    color: #222;
+    font-weight: 500;
+    font-size: 1.6rem;
+  }
+
+
+/* Versus Button */
+
+.gooey{
+    position: relative;
+    left: 20%; top: 0;
+    background-image: linear-gradient(120deg, #34e0f0 0%, #b400ff 100%);
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    width: 150px; height: 144px;
+    animation: morph 3s linear infinite; 
+    transform-style: preserve-3d;
+    outline: 1px solid transparent;
+    will-change: border-radius;
+}
+
+.gooey:before,
+.gooey:after{
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: relative;
+    left: 50%; top: 0;
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    box-shadow: 5px 5px 89px rgba(0, 102, 255, 0.21);
+    will-change: border-radius, transform, opacity;
+    animation-delay: 200ms;
+    background-image: linear-gradient(120deg, rgba(0,67,255,.55) 0%, rgba(0,103,255,.89) 100%);
+}
+  
+.gooey:before{
+    animation: morph 3s linear infinite;
+    opacity: .21;
+    animation-duration: 1.5s;
+}
+  
+.gooey:after{
+    animation: morph 3s linear infinite;
+    animation-delay: 400ms;
+    opacity: .89;
+    display: flex;
+    content: "Versus";
+    font-size: 1.6rem;
+    line-height: 120px;
+    text-indent: -21px;   
+}
+  
+@keyframes morph{
+    0%,100%{
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+      transform: translate3d(0,0,0) rotateZ(0.01deg);
+    }
+    34%{
+        border-radius: 70% 30% 46% 54% / 30% 29% 71% 70%;
+      transform:  translate3d(0,5px,0) rotateZ(0.01deg);
+    }
+    50%{
+      opacity: .89;
+      transform: translate3d(0,0,0) rotateZ(0.01deg);
+    }
+    67%{
+      border-radius: 100% 60% 60% 100% / 100% 100% 60% 60% ;
+      transform: translate3d(0,-3px,0) rotateZ(0.01deg);
+    }
+}
+
+  
+  

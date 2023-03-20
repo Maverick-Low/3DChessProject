@@ -88,9 +88,21 @@ io.sockets.on('connection', function(socket) {
         }
     });
 
-    // // Update list of rooms
+    // Update list of rooms
     socket.on('updateRoomList', function() {
         socket.emit('fetchRooms', allRooms);  
     });
+
+    socket.on("leaveRoom", function(room) {
+        console.log(allRooms);
+        console.log(room);
+        socket.leave(room);
+        const roomLeft = allRooms.find(theRoom => theRoom.roomID === room);
+        const index = allRooms.indexOf(roomLeft);
+        console.log('roomLeft:', roomLeft);
+        allRooms.splice(index, 1);
+        console.log(allRooms);
+    });
+
 
 });
