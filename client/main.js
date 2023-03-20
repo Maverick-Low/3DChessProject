@@ -394,7 +394,8 @@ function select_piece() {
 
         if(legalMove) {
             // Send move to server
-            socket.emit('move', {move: move}); 
+            console.log('IN ROOM BRUV:', currentRoom);
+            socket.emit('move', {move: move, room: currentRoom}); 
             move_piece3D(selectedPiece, move);
             selected = null;    
         }
@@ -503,16 +504,14 @@ function promote_pawn(move, selectedPiece) {
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-        console.log('black:', game.blackPieceSet);
-        console.log('white:', game.whitePieceSet);
+        console.log('IN ROOM:', currentRoom);
     }
 }
 
 function test(event) {
     var key = event.which || event.keyCode
     if(key === 80) {
-        console.log(game.board);
-        delete_all_rooms();
+        socket.emit('test');
     }
 }
 
@@ -555,6 +554,8 @@ function add_room(roomObject) {
     lobbyList.appendChild(newRoom);
 
     newRoom.addEventListener('click', () => {
+        currentRoom = roomObject.roomID;
+        console.log('currentRoom:' ,currentRoom);
         socket.emit('joinRoom', roomObject.roomID);
         players[0] = new Player(false);
         players[1] = new Player(true);
@@ -591,7 +592,6 @@ refreshRooms.addEventListener('click', () => {
     socket.emit('updateRoomList');
 });
 
-
 const leaveLobby = document.getElementById("exit");
 leaveLobby.addEventListener('click', () => {
     const roomHTML = document.getElementById('roomNumber');
@@ -608,6 +608,8 @@ socket.on('fetchRooms', function(allRooms) {
 
 // Server sends a move that is played in game
 socket.on('receivedMove', function(data) {
+    console.log('RECEIVED THE MOVE');
+    console.log('DATA:', data);
     const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
     const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
     const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
