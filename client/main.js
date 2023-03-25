@@ -599,6 +599,31 @@ leaveLobby.addEventListener('click', () => {
     socket.emit('leaveRoom', currentRoom);
 });
 
+const swapColor = document.getElementById("swapColor");
+swapColor.addEventListener('click', () => {
+    const youWhite = document.getElementById("imageWhiteYou");
+    const youBlack = document.getElementById("imageBlackYou");
+
+    const opponentWhite = document.getElementById("imageWhiteOpponent");
+    const opponentBlack = document.getElementById("imageBlackOpponent");
+
+    socket.emit('swapColor', players[0].isWhite);
+    if(youWhite.style.display != 'none') {
+        youWhite.style.display = 'none';
+        youBlack.style.display = 'flex';
+        opponentBlack.style.display = 'none';
+        opponentWhite.style.display = 'flex';
+
+    }
+    else {
+        youWhite.style.display = 'flex'
+        youBlack.style.display = 'none';
+        opponentBlack.style.display = 'flex'
+        opponentWhite.style.display = 'none';
+
+    }
+});
+
 // Display all available lobbies to the client on connect 
 socket.on('fetchRooms', function(allRooms) {
     for(let room in allRooms) {
@@ -615,6 +640,18 @@ socket.on('receivedMove', function(data) {
     const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
     const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
     move_piece3D(piece3D, move);
+});
+
+socket.on('colorChanged', function(hostIsWhite) {
+    console.log('isWhite: ', hostIsWhite);
+    if(hostIsWhite) {
+        players[0].isWhite = false;
+        players[1].isWhite = true;
+    }
+    else {
+        players[0].isWhite = true;
+        players[1].isWhite = false;
+    }
 });
 
 // socket.on('color', function(color) {

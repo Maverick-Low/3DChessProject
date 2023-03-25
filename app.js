@@ -42,15 +42,10 @@ io.sockets.on('connection', function(socket) {
     
     // ---------------------------------------- Handling online game ---------------------------------------- //
     
-    // socket.on('getColor', function() {
-    //     const colors = ['white', 'black'];
-    //     const randomColor =  Math.floor(Math.random() * colors.length);
-    //     socket.emit('color', colors[randomColor]);
-    // });
-    
-    // const colors = ['white', 'black'];
-    // const randomColor =  Math.round(Math.random());
-    // socket.emit('color', colors[randomColor]);
+    socket.on('swapColor', function(hostIsWhite) {
+        console.log('isWhite:', hostIsWhite);
+        socket.emit('colorChanged', hostIsWhite);
+    });
 
     // Send move to OTHER sockets in the same room
     socket.on('move', function(data) {

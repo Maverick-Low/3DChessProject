@@ -376,7 +376,7 @@ body {
     padding: 0px 20px;
   }
 
-.popover .exit::after {
+.popover #exit::after {
     position: absolute;
     right: 0;
     top: 0;
@@ -388,6 +388,26 @@ body {
     color: #fff;
     content: "Leave Lobby";
     font-size: 30px;
+    justify-content: center;
+    align-content: center;
+    cursor: pointer;
+    opacity: 0; 
+    animation: 1s fadeIn ease forwards .5s;
+    /* padding: 0px 10px; */
+}
+
+.popover #swapColor::after {
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    width: 150px;
+    height: 30px;
+    display: flex;
+    z-index: 100;
+    background-color: #BF2E97;
+    color: #fff;
+    content: "Swap Colour";
+    font-size: 15px;
     justify-content: center;
     align-content: center;
     cursor: pointer;
@@ -457,6 +477,14 @@ body {
     bottom: 0;
     left: 50%;
     transform: translate(-50%);
+  }
+
+  .you #imageBlackYou {
+    display: none;
+  }
+
+  .opponent #imageWhiteOpponent {
+    display:none
   }
   
   
@@ -541,6 +569,9 @@ body {
       transform: translate3d(0,-3px,0) rotateZ(0.01deg);
     }
 }
+
+
+
 
   
   
