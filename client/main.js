@@ -522,12 +522,24 @@ function create_room(){
     const roomID = Math.floor((Math.random() * 100) + 1);
     currentRoom = roomID;
     socket.emit('createRoom', roomID);
+
+    // Add room number to the top of the lobby menu
     const lobby = document.querySelector('#lobbyContent');
     const roomNo = document.createElement('a');
     roomNo.textContent = 'Room' + roomID;
     roomNo.style.fontSize = '3vw';
     roomNo.setAttribute('id', 'roomNumber'); // Add the ID attribute
     lobby.insertBefore(roomNo, lobby.firstChild);
+
+    // Host starts off as white
+    const youWhite = document.getElementById("imageWhiteYou");
+    const youBlack = document.getElementById("imageBlackYou");
+    const opponentWhite = document.getElementById("imageWhiteOpponent");
+    const opponentBlack = document.getElementById("imageBlackOpponent");
+    youWhite.style.display = 'flex'
+    youBlack.style.display = 'none';
+    opponentBlack.style.display = 'flex'
+    opponentWhite.style.display = 'none';
 }
 
 function add_room(roomObject) {
@@ -551,11 +563,37 @@ function add_room(roomObject) {
     lobbyList.appendChild(newRoom);
 
     newRoom.addEventListener('click', () => {
+        // Changing pictures shown based on color of player
+        const youWhite = document.getElementById("imageWhiteYou");
+        const youBlack = document.getElementById("imageBlackYou");
+
+        const opponentWhite = document.getElementById("imageWhiteOpponent");
+        const opponentBlack = document.getElementById("imageBlackOpponent");
+        
         currentRoom = roomObject.roomID;
         console.log('currentRoom:' ,currentRoom);
         socket.emit('joinRoom', roomObject.roomID);
-        players[0] = new Player(false);
-        players[1] = new Player(true);
+        socket.once('hostIsWhite', function(hostIsWhite) {
+            console.log('hostIsWhite', hostIsWhite);
+            if(hostIsWhite) {
+                youWhite.style.display = 'none';
+                youBlack.style.display = 'flex';
+                opponentBlack.style.display = 'none';
+                opponentWhite.style.display = 'flex';
+                players[0] = new Player(false);
+                players[1] = new Player(true);
+            }
+            else {
+                youWhite.style.display = 'flex';
+                youBlack.style.display = 'none';
+                opponentBlack.style.display = 'flex';
+                opponentWhite.style.display = 'none';
+                players[0] = new Player(true);
+                players[1] = new Player(false);
+            }
+        })
+        
+        // Add room number to the top of the lobby menu
         const lobby = document.querySelector('#lobbyContent');
         const roomNo = document.createElement('a');
         roomNo.textContent = 'Room' + roomObject.roomID;
@@ -604,27 +642,7 @@ leaveLobby.addEventListener('click', () => {
 
 const swapColor = document.getElementById("swapColor");
 swapColor.addEventListener('click', () => {
-    const youWhite = document.getElementById("imageWhiteYou");
-    const youBlack = document.getElementById("imageBlackYou");
-
-    const opponentWhite = document.getElementById("imageWhiteOpponent");
-    const opponentBlack = document.getElementById("imageBlackOpponent");
-
     socket.emit('swapColor');
-    if(youWhite.style.display != 'none') {
-        youWhite.style.display = 'none';
-        youBlack.style.display = 'flex';
-        opponentBlack.style.display = 'none';
-        opponentWhite.style.display = 'flex';
-
-    }
-    else {
-        youWhite.style.display = 'flex'
-        youBlack.style.display = 'none';
-        opponentBlack.style.display = 'flex'
-        opponentWhite.style.display = 'none';
-
-    }
 });
 
 // Display all available lobbies to the client on connect 
@@ -651,7 +669,27 @@ socket.on('colorChanged', function() {
     // Flip players colours
     players[0].isWhite = !players[0].isWhite;
     players[1].isWhite = !players[1].isWhite;
-    console.log('Player is White:    ',  players[0].isWhite);
+
+    const youWhite = document.getElementById("imageWhiteYou");
+    const youBlack = document.getElementById("imageBlackYou");
+
+    const opponentWhite = document.getElementById("imageWhiteOpponent");
+    const opponentBlack = document.getElementById("imageBlackOpponent");
+
+    if(youWhite.style.display != 'none') {
+        youWhite.style.display = 'none';
+        youBlack.style.display = 'flex';
+        opponentBlack.style.display = 'none';
+        opponentWhite.style.display = 'flex';
+
+    }
+    else {
+        youWhite.style.display = 'flex'
+        youBlack.style.display = 'none';
+        opponentBlack.style.display = 'flex'
+        opponentWhite.style.display = 'none';
+
+    }
 });
 
 window.addEventListener('keydown', print_board);
