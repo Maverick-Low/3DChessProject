@@ -24,10 +24,23 @@ io.sockets.on('connection', function(socket) {
 
     // Check for disconnects
     socket.on('disconnect', function() {
-        
         console.log(socket.id + ' disconnected');
         delete SOCKET_LIST[socket.id];
     });
+
+    socket.on('disconnecting', function() {
+        const [roomID] = socket.rooms;
+        socket.leave(roomID);
+        const roomLeft = allRooms.find((room) => room.roomID === roomID)
+        if(socket.id === roomLeft.host) {
+            const index = allRooms.indexOf(roomLeft);
+            allRooms.splice(index, 1);
+        }
+        else {
+            roomLeft.noOfPlayers--;
+            roomLeft.guest = null;
+        }
+    })
 
     // Generate unique sockets for each player
     socket.id = Math.random();
@@ -45,13 +58,15 @@ io.sockets.on('connection', function(socket) {
         const [roomID] = socket.rooms;
         const currentRoom = allRooms.find((room) => room.roomID === roomID);
 
+        const indexHost = currentRoom.host;
+        const hostSocket = SOCKET_LIST[indexHost];
+        hostSocket.emit('colorChanged');
+        
+        // Check if guest has joined the lobby yet
         if(currentRoom.guest) {
-            const indexHost = currentRoom.host;
             const indexGuest = currentRoom.guest;
-            const hostSocket = SOCKET_LIST[indexHost];
             const guestSocket = SOCKET_LIST[indexGuest];
             guestSocket.emit('colorChanged');
-            hostSocket.emit('colorChanged');
         }
     });
 
@@ -73,6 +88,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('createRoom', function(roomID) {
         // Clients can only join 1 lobby
         if(socket.rooms.size < 1) {
+            socket.join(roomID);
             allRooms.push({roomID: roomID, noOfPlayers: 1, host: socket.id, guest: null});
         }
         
@@ -82,6 +98,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('joinRoom', function(roomID) {
         const roomJoined = allRooms.find((room) => room.roomID === roomID);
         if(roomJoined.noOfPlayers < 2) {
+            socket.join(roomID);
             roomJoined.guest = socket.id;
             roomJoined.noOfPlayers++;
         }
@@ -102,16 +119,15 @@ io.sockets.on('connection', function(socket) {
         }
         else {
             roomLeft.noOfPlayers--;
+            roomLeft.guest = null;
         }
     });
 
     // Function for testing
     socket.on('test', function() {
-        console.log(SOCKET_LIST[socket.id]);
+        console.log(io.sockets.adapter.rooms);
+        console.log(allRooms);
 
-        // for(room in socket.rooms) {
-        //     socket.leave(socket.rooms(room));
-        // }
     });
 
 });
