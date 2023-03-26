@@ -56,9 +56,6 @@ async function init() {
 
 function init_game() {
 
-    // socket.emit('getColor');
-    // Get players color
-
     console.log(players);
     game = new Game(players);
 
@@ -577,14 +574,20 @@ function delete_all_rooms() {
 window.onload = init();
 
 // HTML elements
-const startGame = document.getElementById("startGame");
-startGame.addEventListener('click', init_game);
+// const startGame = document.getElementById("startGame");
+// startGame.addEventListener('click', init_game);
 
 const startLobby = document.getElementById("startLobby");
 startLobby.addEventListener('click', init_game);
 
 const createRoom = document.getElementById("createRoom");
 createRoom.addEventListener('click', create_room);
+
+const viewRooms = document.getElementById("viewLobbies");
+viewRooms.addEventListener('click', () => {
+    delete_all_rooms();
+    socket.emit('updateRoomList');
+});
 
 const refreshRooms = document.getElementById("refresh");
 refreshRooms.addEventListener('click', () => {
@@ -607,7 +610,7 @@ swapColor.addEventListener('click', () => {
     const opponentWhite = document.getElementById("imageWhiteOpponent");
     const opponentBlack = document.getElementById("imageBlackOpponent");
 
-    socket.emit('swapColor', players[0].isWhite);
+    socket.emit('swapColor');
     if(youWhite.style.display != 'none') {
         youWhite.style.display = 'none';
         youBlack.style.display = 'flex';
@@ -642,29 +645,14 @@ socket.on('receivedMove', function(data) {
     move_piece3D(piece3D, move);
 });
 
-socket.on('colorChanged', function(hostIsWhite) {
-    console.log('isWhite: ', hostIsWhite);
-    if(hostIsWhite) {
-        players[0].isWhite = false;
-        players[1].isWhite = true;
-    }
-    else {
-        players[0].isWhite = true;
-        players[1].isWhite = false;
-    }
+// Change the color 
+socket.on('colorChanged', function() {
+    
+    // Flip players colours
+    players[0].isWhite = !players[0].isWhite;
+    players[1].isWhite = !players[1].isWhite;
+    console.log('Player is White:    ',  players[0].isWhite);
 });
-
-// socket.on('color', function(color) {
-//     console.log('color:', color);
-//     if(color === 'white') {
-//         players[0] = new Player(true);
-//         players[1] = new Player(false);
-//     }
-//     else {
-//         players[0] = new Player(false);
-//         players[1] = new Player(true);
-//     }
-// });
 
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
