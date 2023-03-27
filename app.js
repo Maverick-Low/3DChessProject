@@ -21,13 +21,34 @@ var io = require('socket.io') (serv, {});
 var allRooms = new Array(); // An array of objects containing: roomID, noOfPlayers, host, guest, hostIsWhite
 
 function leave_room(socket) {
+    // if(socket.rooms.size > 0) {
+    //     const [roomID] = socket.rooms;
+    //     socket.leave(roomID);
+    //     const roomLeft = allRooms.find((room) => room.roomID === roomID)
+    //     if(socket.id === roomLeft.host) {
+    //         const index = allRooms.indexOf(roomLeft);
+    //         allRooms.splice(index, 1);
+    //     }
+    //     else {
+    //         roomLeft.noOfPlayers--;
+    //         roomLeft.guest = null;
+    //     }
+    // }
     if(socket.rooms.size > 0) {
         const [roomID] = socket.rooms;
         socket.leave(roomID);
         const roomLeft = allRooms.find((room) => room.roomID === roomID)
-        if(socket.id === roomLeft.host) {
-            const index = allRooms.indexOf(roomLeft);
-            allRooms.splice(index, 1);
+        if (socket.id === roomLeft.host) {
+            if(roomLeft.guest) {
+                roomLeft.hostIsWhite = !roomLeft.hostIsWhite;
+                roomLeft.noOfPlayers--;
+                roomLeft.host = roomLeft.guest
+                roomLeft.guest = null;
+            } 
+            else {
+                const index = allRooms.indexOf(roomLeft);
+                allRooms.splice(index, 1);
+            }
         }
         else {
             roomLeft.noOfPlayers--;
