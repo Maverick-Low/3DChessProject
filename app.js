@@ -73,12 +73,7 @@ io.sockets.on('connection', function(socket) {
     socket.id = Math.random();
     SOCKET_LIST[socket.id] = socket;
     console.log(socket.id + ' connected');
-    // console.log(socketsRooms);
-    // console.log('got5: ',io.sockets.adapter.rooms.get(5));
-    // const clients = io.sockets.adapter.rooms.get(5);
-    // const numClients = clients ? clients.size : 0;
-    // console.log(numClients);
-    
+   
     // ---------------------------------------- Handling online game ---------------------------------------- //
     
     socket.on('swapColor', function() {
@@ -107,6 +102,18 @@ io.sockets.on('connection', function(socket) {
             const index = socket.id === currentRoom.host? currentRoom.guest : currentRoom.host;
             const otherSocket = SOCKET_LIST[index];
             otherSocket.emit('receivedMove', data);
+        }
+    });
+
+    // If the socket that sends the signal is the host of the room, send a signal to start the game
+    socket.on('isHost', function() {
+        const [roomID] = socket.rooms;
+        const currentRoom = allRooms.find((room) => room.roomID === roomID);
+        if(socket.id === currentRoom.host && currentRoom.guest) {
+            const guestIndex = currentRoom.guest;   
+            const guestSocket = SOCKET_LIST[guestIndex];
+            guestSocket.emit('startGame');
+            socket.emit('startGame');
         }
     });
 
