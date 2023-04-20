@@ -321,39 +321,39 @@ export class Game {
     king_is_checked() {
         let isBlocked = true;
         let canMove = false;
+        let move;
         const kings = this.get_king_positions();
         
         const whitePlayer = this.players[0].isWhite? this.players[0] : this.players[1];
         const kingTile = this.currentTurn === whitePlayer? kings[0] : kings[1];
+        const kingIsWhite = this.currentTurn === whitePlayer;
 
-        for(let x = 0; x < 8; x++) {
-            for(let z = 0; z < 8; z++) {
-                const currentTile = this.board[x][z];
-                const move = new Move(null, currentTile, kingTile);
-                isBlocked = this.is_blocked(move);
+        for(let x = 0; x < this.blackPieceSet.length; x++) {
+            const currentTile = this.blackPieceSet[x];
+            move = new Move(null, currentTile, kingTile);
+            isBlocked = this.is_blocked(move);
+            canMove = currentTile.piece? currentTile.piece.can_move(currentTile, kingTile) : false;
 
-                if(currentTile.piece) {
-                    const kingIsWhite = kingTile.piece.color == 'white';
-                    const pieceIsWhite = currentTile.piece.color == 'white';
-                    canMove = currentTile.piece.can_move(currentTile, kingTile);
-
-                    if(kingIsWhite && canMove && !isBlocked && !pieceIsWhite) {
-                        return true;
-                    }
-
-                    else if(!kingIsWhite && canMove && !isBlocked && pieceIsWhite) {
-                        return true;
-                    }
-                }    
+            if(kingIsWhite && !isBlocked && canMove) {
+                return true;
             }
         }
-        return false;
+
+        for(let x = 0; x < this.whitePieceSet.length; x++) {
+            const currentTile = this.whitePieceSet[x];
+            move = new Move(null, currentTile, kingTile);
+            isBlocked = this.is_blocked(move);
+            canMove = currentTile.piece? currentTile.piece.can_move(currentTile, kingTile): false;
+
+            if(!kingIsWhite && !isBlocked && canMove) {
+                return true;
+            }
+        }
 
     }
 
     king_is_checkmated() {
 
-        let canKingMove = false;
         const kings = this.get_king_positions();
         const whitePlayer = this.players[0].isWhite? this.players[0] : this.players[1];
         const king = this.currentTurn === whitePlayer? kings[0] : kings[1];
@@ -368,10 +368,11 @@ export class Game {
         const endY = king.position.y + 1 < 7?  king.position.y + 1 : 7;
 
         // 2. Check if the king has any legal moves
+        let canKingMove = false;
         for(let x = startX; x <= endX; x++) {
             for(let y = startY; y <= endY; y++) {
                 const newPos =  this.retrieve_tile_from_position(x,y);
-                const move = new Move(this.currentTurn, king, newPos);
+                const move = new Move(null, king, newPos);
                 if(this.is_legal_move(move)) {
                     canKingMove = true;
                     break;
