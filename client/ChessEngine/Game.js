@@ -326,24 +326,25 @@ export class Game {
         
         const whitePlayer = this.players[0].isWhite? this.players[0] : this.players[1];
         const kingTile = this.currentTurn === whitePlayer? kings[0] : kings[1];
-        const kingIsWhite = this.currentTurn === whitePlayer;
         const pieceSet = this.currentTurn === whitePlayer? this.blackPieceSet : this.whitePieceSet;
 
         for(let x = 0; x < pieceSet.length; x++) {
             const currentTile = pieceSet[x];
+            const kingIsWhite = kingTile.piece.color == 'white';
+            const pieceIsWhite = currentTile.piece.color == 'white';
+
             move = new Move(null, currentTile, kingTile);
             isBlocked = this.is_blocked(move);
             canMove = currentTile.piece? currentTile.piece.can_move(currentTile, kingTile) : false;
 
-            if(kingIsWhite && !isBlocked && canMove) {
+            if(kingIsWhite && canMove && !isBlocked && !pieceIsWhite) {
                 return true;
             }
 
-            else if (!kingIsWhite && !isBlocked && canMove) {
+            else if(!kingIsWhite && canMove && !isBlocked && pieceIsWhite) {
                 return true;
             }
         }
-
     }
 
     king_is_checkmated() {
