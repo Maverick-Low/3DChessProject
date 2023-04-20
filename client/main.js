@@ -56,7 +56,6 @@ async function init() {
 
 function init_game() {
 
-    console.log(players);
     game = new Game(players);
 
     // Pan camera over to board
@@ -391,7 +390,6 @@ function select_piece() {
 
         if(legalMove) {
             // Send move to server
-            console.log('IN ROOM BRUV:', currentRoom);
             socket.emit('move', {move: move, room: currentRoom}); 
             move_piece3D(selectedPiece, move);
             selected = null;    
@@ -512,7 +510,6 @@ function test(event) {
     }
 }
 
-
 // --------------------------------------------- Functions for handing lobbies ----------------------------------------------------- //
 var currentRoom;
 
@@ -571,10 +568,8 @@ function add_room(roomObject) {
         const opponentBlack = document.getElementById("imageBlackOpponent");
         
         currentRoom = roomObject.roomID;
-        console.log('currentRoom:' ,currentRoom);
         socket.emit('joinRoom', roomObject.roomID);
         socket.once('hostIsWhite', function(hostIsWhite) {
-            console.log('hostIsWhite', hostIsWhite);
             if(hostIsWhite) {
                 youWhite.style.display = 'none';
                 youBlack.style.display = 'flex';
@@ -611,13 +606,8 @@ function delete_all_rooms() {
 // Current Main
 window.onload = init();
 
-// HTML elements
-// const startGame = document.getElementById("startGame");
-// startGame.addEventListener('click', init_game);
-
-const startLobby = document.getElementById("startLobby");
-startLobby.addEventListener('click', init_game);
-
+// --------------------------------------------- Event Listeners - Sending Messages to the Server ----------------------------------------------------- //
+    
 const createRoom = document.getElementById("createRoom");
 createRoom.addEventListener('click', create_room);
 
@@ -645,6 +635,16 @@ swapColor.addEventListener('click', () => {
     socket.emit('swapColor');
 });
 
+const startLobby = document.getElementById("startLobby");
+startLobby.addEventListener('click', () => {
+    socket.emit('isHost'); // Check if the player that click start is the host
+});
+
+
+
+// --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
+
+
 // Display all available lobbies to the client on connect 
 socket.on('fetchRooms', function(allRooms) {
     for(let room in allRooms) {
@@ -654,8 +654,6 @@ socket.on('fetchRooms', function(allRooms) {
 
 // Server sends a move that is played in game
 socket.on('receivedMove', function(data) {
-    console.log('RECEIVED THE MOVE');
-    console.log('DATA:', data);
     const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
     const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
     const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
@@ -663,7 +661,7 @@ socket.on('receivedMove', function(data) {
     move_piece3D(piece3D, move);
 });
 
-// Change the color 
+// Swap player's color 
 socket.on('colorChanged', function() {
     
     // Flip players colours
@@ -688,9 +686,12 @@ socket.on('colorChanged', function() {
         youBlack.style.display = 'none';
         opponentBlack.style.display = 'flex'
         opponentWhite.style.display = 'none';
-
     }
 });
+
+socket.on('startGame',function() {
+    init_game();
+})
 
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
