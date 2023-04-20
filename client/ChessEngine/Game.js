@@ -322,7 +322,9 @@ export class Game {
         let isBlocked = true;
         let canMove = false;
         const kings = this.get_king_positions();
-        const kingTile = this.currentTurn === this.players[0]? kings[0] : kings[1];
+        
+        const whitePlayer = this.players[0].isWhite? this.players[0] : this.players[1];
+        const kingTile = this.currentTurn === whitePlayer? kings[0] : kings[1];
 
         for(let x = 0; x < 8; x++) {
             for(let z = 0; z < 8; z++) {
@@ -353,8 +355,11 @@ export class Game {
 
         let canKingMove = false;
         const kings = this.get_king_positions();
-        const king = this.currentTurn === this.players[0]? kings[0] : kings[1];
-        const isKingChecked = this.king_is_checked(king); // 1. Is the king in check
+        const whitePlayer = this.players[0].isWhite? this.players[0] : this.players[1];
+        const king = this.currentTurn === whitePlayer? kings[0] : kings[1];
+
+        // 1. Is the king in check?
+        const isKingChecked = this.king_is_checked(king); 
 
         // Iterate only around the king
         const startX = king.position.x - 1 > 0? king.position.x - 1 : 0;
@@ -374,9 +379,9 @@ export class Game {
             }
         }
         
-        // 3. Can any other pieces move
+        // 3. Can any other pieces move?
         let canPieceMove = false;
-        const pieceSet = this.currentTurn === this.players[0]? this.whitePieceSet : this.blackPieceSet;
+        const pieceSet = this.currentTurn === whitePlayer? this.whitePieceSet : this.blackPieceSet;
         for(let i = 0; i < pieceSet.length; i++) {  
             for(let x = 0; x < 8; x++) {
                 for(let y = 0; y < 8; y++) {

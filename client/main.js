@@ -321,7 +321,9 @@ function reset_tile_materials() {
 function highlight_kings_tile(){
     const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
     const kings = game.get_king_positions();
-    const kingInCheck = game.currentTurn === players[0]? kings[0] : kings[1];
+    const whitePlayer = game.players[0].isWhite? game.players[0] : game.players[1];
+    const kingInCheck = game.currentTurn === whitePlayer? kings[0] : kings[1];
+
     const kingIsChecked = game.king_is_checked();
     const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
 
@@ -395,7 +397,8 @@ function select_piece() {
             selected = null;    
         }
         
-        // game.king_is_checkmated();
+        console.log('Checkmate:', game.king_is_checkmated());
+
     }
 }
 
@@ -499,8 +502,18 @@ function promote_pawn(move, selectedPiece) {
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-        console.log('IN ROOM:', currentRoom);
-    }
+        // console.log('currentTurn:   ', game.currentTurn);
+        // const kings = game.get_king_positions();
+        // const kingTile = game.currentTurn === players[0]? kings[0] : kings[1];
+        // console.log('Only looking at King:   ', kingTile.piece);
+
+        // // const whitesKing = game.currentTurn === players.find(player => player.isWhite === true)
+        // const whitesKing = players.find(player => player.isWhite === true);
+        
+        // const x = game.currentTurn === whitesKing? kings[0] : kings[1];
+        // console.log('Should be looking at King:', x.piece);
+        console.log('Checkmate:', game.king_is_checkmated());
+    }   
 }
 
 function test(event) {
