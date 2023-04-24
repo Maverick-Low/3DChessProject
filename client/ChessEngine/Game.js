@@ -245,12 +245,11 @@ export class Game {
         const piece = move.pieceMoved;
         if(piece instanceof(Pawn)) {
             if (piece.color == 'white' && move.endPos.position.x == 0) {
-                move.endPos.piece = new Queen('white', piece.id);
+                // move.endPos.piece = new Queen('white', piece.id);
                 return true;
             }
 
             else if (piece.color == 'black' && move.endPos.position.x == 7) {
-                move.endPos.piece = new Queen('black', piece.id);
                 return true;
             }
         }
@@ -355,6 +354,7 @@ export class Game {
 
         // 1. Is the king in check?
         const isKingChecked = this.king_is_checked(king); 
+        if(!isKingChecked) { return false};
 
         // Iterate only around the king
         const startX = king.position.x - 1 > 0? king.position.x - 1 : 0;

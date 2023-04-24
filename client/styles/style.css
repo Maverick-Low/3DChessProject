@@ -6,7 +6,7 @@
   font-style: normal;
 }
 
-/* Rendered scene */
+/* --------------------------------------------- CSS for ThreeJS Scene ----------------------------------------------------- */
 
 canvas {
     position: fixed;
@@ -22,7 +22,7 @@ canvas {
     background: rgb(135, 206, 235);
 }
 
-/* Cursor */
+/* --------------------------------------------- CSS for Custom Cursor ----------------------------------------------------- */
 
 [data-cursor] {
     width: 50px;
@@ -77,7 +77,9 @@ canvas {
   height: 100px;
 }
 
-/*  Blobby Buttons */
+
+/* --------------------------------------------- CSS for Main Menu Buttons ----------------------------------------------------- */
+
 
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,600,700&display=swap');
 
@@ -229,7 +231,8 @@ body {
     }
 }
 
-/* Lobby Menu */
+/* --------------------------------------------- CSS for Lobby Menu ----------------------------------------------------- */
+
 
 * {
     margin: 0;
@@ -374,7 +377,7 @@ body {
     opacity: 0; 
     animation: 1s fadeIn ease forwards .5s;
     padding: 0px 20px;
-  }
+}
 
 .popover #exit::after {
     position: absolute;
@@ -437,15 +440,12 @@ body {
     }
 }
 
+/* --------------------------------------------- CSS for Lobby Versus ----------------------------------------------------- */
+
 
 #lobbyContent {
     margin: 0;
     display: grid;
-    /* place-items: center; */
-    /* background:
-      radial-gradient(at 100% 50%, #ee0c, #ee00),
-      radial-gradient(at 0 0, #9f98, #9f90),
-      linear-gradient(#09fc, #f09c) */
     padding: 40px 60px;
     color: #fff;
     text-align: center;
@@ -456,8 +456,6 @@ body {
   
   .badge {
     display: flex;
-    /* height: 10%;
-    width: 35%; */
     height: 5rem;
     width: 20rem;
     text-decoration: none;
@@ -495,7 +493,6 @@ body {
   .badge > div {
     background: linear-gradient(#fff, #e8e8e8);
     flex: 1;
-    /* padding: 0.75rem 0.75rem 0 1.25rem; */
     clip-path: polygon(0 0, 95% 0, 100% 50%, 95% 100%, 0 100%, 5% 50%);
   }
   
@@ -505,8 +502,6 @@ body {
     font-size: 1.6rem;
   }
 
-
-/* Versus Button */
 
 .gooey{
     position: relative;
@@ -570,8 +565,122 @@ body {
     }
 }
 
+/* --------------------------------------------- CSS for Pawn Promotion Menu ----------------------------------------------------- */
+
+.promotionMenu {
+    display: none;
+    box-shadow: 0px 6px 8px rgba(19, 19, 19, .7);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+/* .promotionMenu:target {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+} */
+
+.promotionMenu .content {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 50%;
+    height: 50%;
+    color: #fff;
+    background-color: #1919194f;
+    animation: 1s grow ease forwards;
+    text-align: center;
+    overflow: auto;
+}
+
+.nav_list  {
+    list-style-type: none;
+}
+
+.nav_list a {
+    text-decoration: none;
+    font-size: 20px;
+    color: #fff;
+}
+
+.nav_list a {
+    position: relative;
+    display: inline-block;
+    margin-top: 10px;
+    border: 2px solid #fff;
+    padding: 6px 18px;
+    text-decoration: none;
+    color: #fff;
+    font-weight: 400;
+    border-radius: 73% 27% 44% 56% / 49% 44% 56% 51%;
+}
+
+.nav_list a:hover {
+    background: white;
+    color: #333333;
+}
+
+.piece_type {
+    height: 100%;
+    overflow: hidden;
+}
+
+.nav_list li {
+    padding: 15px 0;
+    text-transform: uppercase;
+    transform: translateY(200px);
+    opacity: 0;
+    animation: 2s slideUp ease forwards .5s;
+    position: relative;
+}
+
+.nav_list li::before {
+    content: '';
+    position: absolute;
+    height: 2px;
+    width: 0px;
+    left: 0;
+    bottom: 10px;
+    background: #BF2E97; 
+    transition: all .5s ease;
+}
+
+.nav_list li:hover:before {
+    width: 100%;
+}
+
+.promotionMenu p {
+    padding: 50px;
+    opacity: 0;
+    animation: 1s fadeIn ease forwards 1s;
+}
+
+.promotionMenu h2 {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 20px;
+    justify-content: center;
+    color: #fff;
+}
 
 
 
-  
-  
+
+

@@ -407,17 +407,23 @@ function deselect_piece() {
     reset_tile_materials();
 }
 
-// Move the pieces
+// Move the pieces 
 function move_piece3D(piece3D, move) {
     const endPos = move.endPos.position;
 
+    // Move piece in 3D
     take_piece(move.endPos);
     piece3D.position.set(endPos.y, 0, endPos.x);
     piece3D.userData.currentSquare = {x: endPos.x, z: endPos.y};
     piece3D.userData.posX = endPos.x;
     piece3D.userData.posZ = endPos.y;
-    castle_king(move);
 
+    // If the move is a castle - move the corresponding Rook
+    if(game.can_castle(move)) {
+        castle_king(move);
+    }
+
+    // Check if King or Rook has moved
     if(move.startPos.piece instanceof(King) || move.startPos.piece instanceof(Rook)) {
         move.startPos.piece.canCastle = false;
     }
@@ -425,12 +431,17 @@ function move_piece3D(piece3D, move) {
     // Move piece in 2D
     game.update_pieceSet(move);
     game.move_piece(move);
-    promote_pawn(move, piece3D);
+
+    // Check for pawn promotion
+    if(game.pawn_promotion(move)) {
+        promote_pawn(piece3D, move);
+    }
+
     game.currentTurn = game.currentTurn === players[0]? players[1] : players[0];
     reset_tile_materials();
 }
 
-// Checks if piece is at a given tile
+// Removes a piece from the board if the piece is taken
 function take_piece(tile) {
     const piece3D = scene.children.find((child) => (child.userData.posX === tile.position.x) && (child.userData.posZ === tile.position.y));
 
@@ -458,43 +469,101 @@ function take_piece(tile) {
 // --------------------------------------------- Functions for special rules ----------------------------------------------------- //
 
 function castle_king(move) {
-    if(game.can_castle(move)) {
-        // Get the corresponding rook 
-        const rookTile = game.get_rook(move);
-        const rookCoOrds = {x: rookTile.position.y, z: rookTile.position.x};
-        const rookPos = find_tile_position(rookCoOrds);
-        const rook3D = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
-       
-        // Set the corresponding castle position for the rook
-        const isRookWhite = rookTile.piece.color === 'white';
-        const posX = isRookWhite? 7 : 0;
-        const rook3DNewPos = rookTile === game.board[posX][7]? {x: posX, z: 5} : {x: posX, z: 3};
-        const tile = board.children.find((child) => (child.userData.squareNumber.x === rook3DNewPos.x) && (child.userData.squareNumber.z === rook3DNewPos.z));
-        const newPos = tile.userData.squareNumber;
-        const targetPosition = find_tile_position(newPos);
+    
+    // Get the corresponding rook 
+    const rookTile = game.get_rook(move);
+    const rookCoOrds = {x: rookTile.position.y, z: rookTile.position.x};
+    const rookPos = find_tile_position(rookCoOrds);
+    const rook3D = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
+    
+    // Set the corresponding castle position for the rook
+    const isRookWhite = rookTile.piece.color === 'white';
+    const posX = isRookWhite? 7 : 0;
+    const rook3DNewPos = rookTile === game.board[posX][7]? {x: posX, z: 5} : {x: posX, z: 3};
+    const tile = board.children.find((child) => (child.userData.squareNumber.x === rook3DNewPos.x) && (child.userData.squareNumber.z === rook3DNewPos.z));
+    const newPos = tile.userData.squareNumber;
+    const targetPosition = find_tile_position(newPos);
 
-        // Move rook in 3D
-        rook3D.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
-        rook3D.userData.currentSquare = newPos;
-        rook3D.userData.posX = newPos.x;
-        rook3D.userData.posZ = newPos.z;
+    // Move rook in 3D
+    rook3D.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
+    rook3D.userData.currentSquare = newPos;
+    rook3D.userData.posX = newPos.x;
+    rook3D.userData.posZ = newPos.z;
 
-        // Move rook in 2D
-        const rookEndPos = move.endPos === game.board[posX][6]? game.board[posX][5] : game.board[posX][3];
-        const castleRook = new Move(game.currentTurn, rookTile, rookEndPos);
-        game.update_pieceSet(castleRook);
-        game.move_piece(castleRook);
-    }
+    // Move rook in 2D
+    const rookEndPos = move.endPos === game.board[posX][6]? game.board[posX][5] : game.board[posX][3];
+    const castleRook = new Move(game.currentTurn, rookTile, rookEndPos);
+    game.update_pieceSet(castleRook);
+    game.move_piece(castleRook);
+    
 }
 
-function promote_pawn(move, selectedPiece) {
-    if(game.pawn_promotion(move)) {
-        const pieceName = selectedPiece.name.includes('white')? 'whiteQueen' : 'blackQueen';
-        const pos = selectedPiece.position;
-        const piece = chessMesh.scene.children.find((child) => child.name === pieceName).clone(true);
-        scene.remove(selectedPiece);
-        customise_piece(pos, piece, {x: pos.z, z: pos.x});
+function promote_pawn(selectedPiece, move) {
+    const pieceColor = selectedPiece.name.includes('white')? 'white' : 'black';
+    const choosingPlayer = (pieceColor === 'white' && players[0].isWhite) || (pieceColor === 'white' && players[0].isWhite);
+    const color = players[0].isWhite? 'white' : 'black';
+
+    if(choosingPlayer) {
+        const promotionMenu = document.getElementById("promotionMenu");
+        promotionMenu.style.display = 'flex'; // Make menu visible
+
+        const pieceTypes = document.querySelectorAll('.piece_type a');
+        pieceTypes.forEach(pieceType => pieceType.addEventListener('click', () => {
+            const desiredPiece = pieceType.textContent.replace(/\s/g, '');
+            const pieceName =  pieceColor.concat(desiredPiece);
+            const pos = selectedPiece.position;
+            const piece = chessMesh.scene.children.find((child) => child.name === pieceName).clone(true);
+
+            // Change 3D piece
+            scene.remove(selectedPiece);
+            customise_piece(pos, piece, {x: pos.z, z: pos.x});
+
+            // Change piece in Chess Game Engine
+            switch(pieceName){
+                case color + 'Knight':
+                    move.endPos.piece = new Knight(color, piece.id);
+                    break;
+                case color + 'Bishop':
+                    move.endPos.piece = new Bishop(color, piece.id);
+                    break;
+                case color + 'Queen':
+                    move.endPos.piece = new Queen(color, piece.id);
+                    break;
+                case color + 'Rook':
+                    move.endPos.piece = new Rook(color, piece.id);
+                    break;
+            }
+
+            promotionMenu.style.display = 'none';
+            socket.emit('promotion', pieceName);
+        }));
     }
+    
+    else {
+        socket.on('promoting', function(pieceName) {                
+            const pos = selectedPiece.position;
+            const piece = chessMesh.scene.children.find((child) => child.name === pieceName).clone(true);
+            scene.remove(selectedPiece);
+            customise_piece(pos, piece, {x: pos.z, z: pos.x});
+
+            // Change piece in Chess Game Engine
+            switch(pieceName){
+                case color + 'Knight':
+                    move.endPos.piece = new Knight(color, piece.id);
+                    break;
+                case color + 'Bishop':
+                    move.endPos.piece = new Bishop(color, piece.id);
+                    break;
+                case color + 'Queen':
+                    move.endPos.piece = new Queen(color, piece.id);
+                    break;
+                case color + 'Rook':
+                    move.endPos.piece = new Rook(color, piece.id);
+                    break;
+            }
+        });
+    }
+    
 }
 
 // --------------------------------------------- Functions for printing ----------------------------------------------------- //
@@ -513,6 +582,7 @@ function print_board(event) {
         // const x = game.currentTurn === whitesKing? kings[0] : kings[1];
         // console.log('Should be looking at King:', x.piece);
         console.log('Checkmate:', game.king_is_checkmated());
+        console.log(game.board);
     }   
 }
 
@@ -708,3 +778,14 @@ socket.on('startGame',function() {
 
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
+
+const testButton = document.getElementById("test");
+testButton.addEventListener('click', () => {
+    const promotionMenu = document.getElementById("promotionMenu");
+    promotionMenu.style.display = 'flex';
+
+    const pieceTypes = document.querySelectorAll('.piece_type a');
+    pieceTypes.forEach(pieceType => pieceType.addEventListener('click', () => {
+        console.log(pieceType.textContent);
+    }));
+});
