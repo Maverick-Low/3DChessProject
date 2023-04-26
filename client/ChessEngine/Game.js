@@ -103,7 +103,7 @@ export class Game {
 
         let isBlocked = false, nextTile;
 
-        if(move.startPos.piece instanceof(Rook) || move.startPos.piece instanceof(Pawn)) {
+        if(move.startPos.piece instanceof(Rook)) {
             
             // Check for blocks above or below
             for(let i = 1; i < totalStepsVertical; i++) {
@@ -118,7 +118,24 @@ export class Game {
                 isBlocked = nextTile.piece? true: false;
                 if(isBlocked) {return true};
             }
+        }
 
+        if(move.startPos.piece instanceof(Pawn)) {
+            // Check for blocks above or below
+            for(let i = 1; i < totalStepsVertical; i++) {
+                nextTile = startX > endX? this.board[startX - i][startY] : this.board[startX + i][startY];
+                isBlocked = nextTile.piece? true: false;
+                if(isBlocked) {return true};
+            }
+        }
+
+        if(move.startPos.piece instanceof(King)) {
+            // Check for blocks to the side
+            for(let i = 1; i < totalStepsHorizontal; i++) {
+                nextTile = startY > endY? this.board[startX][startY - i] : this.board[startX][startY + i];
+                isBlocked = nextTile.piece? true: false;
+                if(isBlocked) {return true};
+            }
         }
         
         else if (move.startPos.piece instanceof(Bishop)) {
@@ -280,6 +297,7 @@ export class Game {
     // Checks to see if the king has the option of moving to the castling squares
     can_king_castle(move) {
         if(move.startPos.piece instanceof(King)) {
+            const isBlocked = this.is_blocked(move);
             const pieceIsWhite = move.startPos.piece.color === 'white';
             const rhsID = pieceIsWhite? 31 : 7;
             const lshID = pieceIsWhite? 24 : 0;
@@ -296,19 +314,19 @@ export class Game {
                 if(canRookRHSCastle && canRookLHSCastle) {
                     const y = Math.abs(move.endPos.position.y - move.startPos.position.y);
                     const canMoveTwo = sameRow && (y == 2);
-                    return canMoveTwo;
+                    return canMoveTwo && !isBlocked;
                 }
 
                 if(canRookRHSCastle) {
                     const y = move.endPos.position.y - move.startPos.position.y;
                     const canMoveTwoRight = sameRow && (y == 2);
-                    return canMoveTwoRight;
+                    return canMoveTwoRight && !isBlocked;
                 }
 
                 else if(canRookLHSCastle) {
                     const y = move.startPos.position.y - move.endPos.position.y;
                     const canMoveTwoLeft = sameRow && (y == 2);
-                    return canMoveTwoLeft;
+                    return canMoveTwoLeft && !isBlocked;
                 }
             }
         }
@@ -317,7 +335,7 @@ export class Game {
 
     // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //
 
-    king_is_checked() {
+    king_is_checked() { 
         let isBlocked = true;
         let canMove = false;
         let move;

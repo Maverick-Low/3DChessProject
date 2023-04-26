@@ -90,10 +90,6 @@ export class King extends Piece{
 
         const sameRow = endPos.position.x == startPos.position.x? true : false;
         const sameCol = endPos.position.y == startPos.position.y? true : false;
-
-        // if(this.canCastle === true) {
-        //     return (sameCol && (x == 1) || sameRow && (y == 1) || (x == 1) && (y == 1) || sameRow && (y == 2));
-        // }
        
         return (sameCol && (x == 1) || sameRow && (y == 1) || (x == 1) && (y == 1));
     }
