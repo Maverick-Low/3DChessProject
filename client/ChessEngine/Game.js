@@ -120,7 +120,7 @@ export class Game {
             }
         }
 
-        if(move.startPos.piece instanceof(Pawn)) {
+        else if(move.startPos.piece instanceof(Pawn)) {
             // Check for blocks above or below
             for(let i = 1; i < totalStepsVertical; i++) {
                 nextTile = startX > endX? this.board[startX - i][startY] : this.board[startX + i][startY];
@@ -129,7 +129,7 @@ export class Game {
             }
         }
 
-        if(move.startPos.piece instanceof(King)) {
+        else if(move.startPos.piece instanceof(King)) {
             // Check for blocks to the side
             for(let i = 1; i < totalStepsHorizontal; i++) {
                 nextTile = startY > endY? this.board[startX][startY - i] : this.board[startX][startY + i];
@@ -262,7 +262,6 @@ export class Game {
         const piece = move.pieceMoved;
         if(piece instanceof(Pawn)) {
             if (piece.color == 'white' && move.endPos.position.x == 0) {
-                // move.endPos.piece = new Queen('white', piece.id);
                 return true;
             }
 

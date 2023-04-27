@@ -500,10 +500,11 @@ function castle_king(move) {
 
 function promote_pawn(selectedPiece, move) {
     const pieceColor = selectedPiece.name.includes('white')? 'white' : 'black';
-    const choosingPlayer = (pieceColor === 'white' && players[0].isWhite) || (pieceColor === 'white' && players[0].isWhite);
-    const color = players[0].isWhite? 'white' : 'black';
+    const choosingPlayer = (pieceColor === 'white' && players[0].isWhite) || (pieceColor === 'black' && !players[0].isWhite);
+    
 
     if(choosingPlayer) {
+        const color = players[0].isWhite? 'white' : 'black';
         const promotionMenu = document.getElementById("promotionMenu");
         promotionMenu.style.display = 'flex'; // Make menu visible
 
@@ -534,15 +535,19 @@ function promote_pawn(selectedPiece, move) {
                     break;
             }
 
+            // game.update_pieceSet(move);
             promotionMenu.style.display = 'none';
             socket.emit('promotion', pieceName);
         }));
     }
     
     else {
-        socket.on('promoting', function(pieceName) {                
+        socket.on('promoting', function(pieceName) { 
+            const color = players[0].isWhite? 'black' : 'white';               
             const pos = selectedPiece.position;
             const piece = chessMesh.scene.children.find((child) => child.name === pieceName).clone(true);
+        
+            // Change 3D piece
             scene.remove(selectedPiece);
             customise_piece(pos, piece, {x: pos.z, z: pos.x});
 
@@ -561,6 +566,7 @@ function promote_pawn(selectedPiece, move) {
                     move.endPos.piece = new Rook(color, piece.id);
                     break;
             }
+           
         });
     }
     
