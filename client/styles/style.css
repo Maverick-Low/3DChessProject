@@ -110,7 +110,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 50vh;
-    background: #f1f1f1;
+    background: #ffffff;
 }
 
 .square {
@@ -245,7 +245,7 @@ body {
     justify-content: center;
     align-items: center;
     scroll-behavior: smooth;
-    background: #1313136e;
+    background: #13131327;
     font-family:'Helvetica Neue', sans-serif;
 }
 
@@ -580,18 +580,6 @@ body {
     justify-content: center;
 }
 
-/* .promotionMenu:target {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 50%;
-    height: 100%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-} */
-
 .promotionMenu .content {
     display: flex;
     justify-content: center;
@@ -681,6 +669,114 @@ body {
 }
 
 
+/* --------------------------------------------- CSS for Customisation Menu ----------------------------------------------------- */
 
 
+.customisationMenu {
+    display: none;
+    box-shadow: 0px 6px 8px rgba(19, 19, 19, .7);
+    position: absolute;
+    right:0;
+    bottom: 0;
+    width: 100%;
+    height: 25%;
+    align-items: center;
+    justify-content: center;
+}
 
+.customisationMenu .content {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 50%;
+    height: 50%;
+    color: #fff;
+    background-color: #1919194f;
+    animation: 1s grow ease forwards;
+    /* text-align: center; */
+    overflow: auto;
+}
+
+
+.customisationMenu p {
+    padding: 50px;
+    opacity: 0;
+    animation: 1s fadeIn ease forwards 1s;
+}
+
+.customisationMenu h2 {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 20px;
+    justify-content: center;
+    color: #fff;
+}
+
+.skinName {
+    display: flex;
+    position: relative;
+    top: 20%;
+    font-size: 20px;
+    content: "Name 1";
+}
+
+.arrow {
+	position: absolute;
+	top: 50%;
+	width: 3vmin;
+	height: 3vmin;
+	background: transparent;
+	border-top: 1vmin solid white;
+	border-right: 1vmin solid white;
+	box-shadow: 0 0 0 lightgray;
+	transition: all 200ms ease;
+}
+
+.left {
+    left: 30%;
+    transform: translate3d(0,-50%,0) rotate(-135deg);
+}
+
+.right {
+    right: 30%;
+    transform: translate3d(0,-50%,0) rotate(45deg);
+}
+
+.arrow:hover {
+    border-color: orange;
+    box-shadow: 0.5vmin -0.5vmin 0 white;
+}
+
+.arrow:before { 
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-40%,-60%) rotate(45deg);
+    width: 200%;
+    height: 200%;
+}
+
+.customisationMenu .close::after {
+    right: 0;
+    top: 0;
+    width: 5%;
+    height: 20%;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    background-color: #BF2E97;
+    color: #fff;
+    content: "×";
+    cursor: pointer;
+    opacity: 0; 
+    animation: 1s fadeIn ease forwards .5s;
+}

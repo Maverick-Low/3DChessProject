@@ -46,16 +46,24 @@
 
     <!-- Main Menu -->
     <div id = "menu" class="container">
-
-        <button id = "test"> PROMOTION MENU</button>
-
-        <a href="#"> 
+        <!-- <a href="#"> 
             <div id = "startGame" class="square start">
                 <span></span>
                 <span></span>
                 <span></span>
                 <div class="content">
                     <h2> Start Game </h2>
+                </div>
+            </div>
+        </a> -->
+
+        <a href="#"> 
+            <div id = "customise" class="square start">
+                <span></span>
+                <span></span>
+                <span></span>
+                <div class="content">
+                    <h2> Customisation </h2>
                 </div>
             </div>
         </a>
@@ -82,6 +90,7 @@
             </div>
         </a>
 
+        <!-- List of Lobbies -->
         <div class="popover" id="lobbyList">
             <div class = 'content'>
                 <a href="#" class="close"></a>
@@ -92,6 +101,7 @@
             </div>
         </div>
 
+        <!-- Versus Lobby -->
         <div class="popover" id="lobby">
             <div class = 'content' id = "lobbyContent">
                 <a id = "exit" href="#"></a>
@@ -120,6 +130,7 @@
         </div>
     </div>
 
+    <!-- Pawn Promotion Menu -->
     <div class="promotionMenu" id = "promotionMenu">
         <div class = 'content'>
             <h2> Choose a piece</h2>
@@ -131,6 +142,17 @@
                     <div class = "piece_type"> <li> <a> <span>Queen</span> </a> </li> </div>
                 </ul>
             </div>
+        </div>
+    </div>
+
+    <!-- Customisation Menu -->
+    <div class="customisationMenu" id = "customisationMenu">
+        <div class = 'content'>
+            <h2> Piece Selector </h2>
+            <a href="#" class="close" id = "quitCust"></a>
+            <a href="#" class="arrow left"></a>
+            <a class = "skinName"> Skin Name </a> 
+            <a href="#" class="arrow right"></a>
         </div>
     </div>
 

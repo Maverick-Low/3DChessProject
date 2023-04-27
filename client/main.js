@@ -10,7 +10,7 @@ import { Player } from './ChessEngine/Player.js';
 var scene, camera, renderer, controls, container, mouse, raycaster, loader, chessMesh;  // Global ThreeJS variables
 var board, game, players = new Array(2);                                                // Global game variables
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variales for pieces
-var fileName = 'client/assets/ChessSet-Normal-1.glb';
+var fileName = 'client/assets/AntChessSet.glb';
 var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
 var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
 var socket = io();
@@ -50,6 +50,9 @@ async function init() {
     room.scene.position.set(3.5, 0, 3.5);
     scene.add(room.scene);
     
+    // Create board
+    create_board();
+    
     window.addEventListener('resize', () => resize_window(container, camera, renderer));
     window.requestAnimationFrame(initial_animate);
 }
@@ -81,7 +84,6 @@ function init_game() {
     mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
 
-    create_board();
     fill_board();
     window.requestAnimationFrame(animate);
 
@@ -162,6 +164,7 @@ function customise_piece(pos, piece, currentTile) {
     piece.material = material;
     piece.position.set(pos.x, pos.y, pos.z);
     scene.add(piece);
+   
 }
 
 async function fill_board() {
@@ -730,6 +733,81 @@ startLobby.addEventListener('click', () => {
 });
 
 
+// --------------------------------------------- Customisation ----------------------------------------------------- //
+
+const customise = document.getElementById("customise");
+customise.addEventListener('click', async function() {
+
+    const loaderX = new GLTFLoader();
+    const pieceSkins = await loaderX.loadAsync(fileName);
+    const skin = pieceSkins.scene;
+
+    // Pan camera over to board
+    gsap.to(camera.position, {
+        x: -20,
+        y: 10,
+        z: 3.5,
+        duration: 2,
+        onUpdate: function() {
+            controls.target.set(3.5, 0, 3.5); 
+            const custMenu = document.getElementById("customisationMenu");
+            custMenu.style.display = 'flex'; // Make Custom menu visible
+
+            const mainMenu = document.getElementById("menu");
+            mainMenu.style.display = 'none'; // Hide main menu
+        },
+        onComplete: function() {
+            controls.maxPolarAngle = Math.PI/2;
+            controls.maxDistance = 30;
+            controls.minDistance = 5;
+            controls.enablePan = false;
+            controls.enableDamping = true;
+            controls.enabled = true;
+
+            let whiteCount = 1;
+            let blackCount = 1;
+
+            while(skin.children.length) {
+                const piece = skin.children[0];
+                if(piece.name.includes('white')) {
+                    piece.position.set(whiteCount, 0, 7);
+                    whiteCount++;
+                }
+                else {
+                    piece.position.set(blackCount, 0, 0);
+                    blackCount++;
+                }
+                scene.add(piece);
+            }
+        }
+    });
+
+});
+
+const exitCustomise = document.getElementById("quitCust");
+exitCustomise.addEventListener('click', async function() {
+    
+    // Return to Main Menu
+    const custMenu = document.getElementById("customisationMenu");
+    custMenu.style.display = 'none'; // Make Custom menu invisible
+    controls.enabled = false;
+    controls.maxDistance = 1000;
+    // Pan camera over to board
+    gsap.to(camera.position, {
+        x: -100,
+        y: 60,
+        z: 100,
+        duration: 2,
+        onUpdate: function() {
+            
+        },
+        onComplete: function() {
+            const mainMenu = document.getElementById("menu");
+            mainMenu.style.display = 'flex'; // Make Main Menu visible
+        }
+    });
+
+});
 
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
 
@@ -784,14 +862,3 @@ socket.on('startGame',function() {
 
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
-
-const testButton = document.getElementById("test");
-testButton.addEventListener('click', () => {
-    const promotionMenu = document.getElementById("promotionMenu");
-    promotionMenu.style.display = 'flex';
-
-    const pieceTypes = document.querySelectorAll('.piece_type a');
-    pieceTypes.forEach(pieceType => pieceType.addEventListener('click', () => {
-        console.log(pieceType.textContent);
-    }));
-});
