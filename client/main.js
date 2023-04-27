@@ -10,10 +10,11 @@ import { Player } from './ChessEngine/Player.js';
 var scene, camera, renderer, controls, container, mouse, raycaster, loader, chessMesh;  // Global ThreeJS variables
 var board, game, players = new Array(2);                                                // Global game variables
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variales for pieces
-var fileName = 'client/assets/AntChessSet.glb';
+var fileName = 'client/assets/NormalChessSet.glb';
 var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
 var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
 var socket = io();
+var chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb'];
 
 async function init() {
     // Scene
@@ -734,13 +735,34 @@ startLobby.addEventListener('click', () => {
 
 
 // --------------------------------------------- Customisation ----------------------------------------------------- //
+let index = 0;  
+const loaderX = new GLTFLoader();
+const pieceSkins = await loaderX.loadAsync(chessSets[0]);
+const pieceSet = new THREE.Group();
+
+function load_pieces(pieceSkin) {
+    pieceSet.clear();
+    let whiteCount = 1;
+    let blackCount = 1;
+
+    while(pieceSkin.scene.children.length) {
+        const piece = pieceSkin.scene.children[0];
+        if(piece.name.includes('white')) {
+            piece.position.set(whiteCount, 0, 7);
+            whiteCount++;
+        }
+        else {
+            piece.position.set(blackCount, 0, 0);
+            blackCount++;
+        }
+        pieceSet.add(piece);
+    }
+
+    scene.add(pieceSet);
+}
 
 const customise = document.getElementById("customise");
 customise.addEventListener('click', async function() {
-
-    const loaderX = new GLTFLoader();
-    const pieceSkins = await loaderX.loadAsync(fileName);
-    const skin = pieceSkins.scene;
 
     // Pan camera over to board
     gsap.to(camera.position, {
@@ -763,22 +785,7 @@ customise.addEventListener('click', async function() {
             controls.enablePan = false;
             controls.enableDamping = true;
             controls.enabled = true;
-
-            let whiteCount = 1;
-            let blackCount = 1;
-
-            while(skin.children.length) {
-                const piece = skin.children[0];
-                if(piece.name.includes('white')) {
-                    piece.position.set(whiteCount, 0, 7);
-                    whiteCount++;
-                }
-                else {
-                    piece.position.set(blackCount, 0, 0);
-                    blackCount++;
-                }
-                scene.add(piece);
-            }
+            load_pieces(pieceSkins);
         }
     });
 
@@ -807,6 +814,22 @@ exitCustomise.addEventListener('click', async function() {
         }
     });
 
+});
+
+const rightArrow = document.getElementById("rightArrow");
+rightArrow.addEventListener('click', async function() {
+    scene.remove(pieceSet);
+    index = index >= chessSets.length -1? 0 : index+1;
+    const pieceSkin = await loaderX.loadAsync(chessSets[index]);
+    load_pieces(pieceSkin);
+});
+
+const leftArrow = document.getElementById("leftArrow");
+leftArrow.addEventListener('click', async function() {
+    scene.remove(pieceSet);
+    index = index <= 0? chessSets.length - 1: index - 1;
+    const pieceSkin = await loaderX.loadAsync(chessSets[index]);
+    load_pieces(pieceSkin);
 });
 
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
