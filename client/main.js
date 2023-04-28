@@ -11,7 +11,7 @@ var scene, camera, renderer, controls, container, mouse, raycaster, loader, ches
 var board, game, players = new Array(2);                                                // Global game variables
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variables for pieces
 var index = 0, chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb']; // Global variables for Customisation
-var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd}), darkTile = new THREE.MeshBasicMaterial({color: 0x77593e}); // Tile colors
+var lightTileColor = 0xe3d8bd, darkTileColor = 0x77593e; // Tile colors
 var whiteColor = 0xffe9d2, blackColor = 0x4e4e4e; // Piece colors
 var socket = io(), currentRoom; // Global variables for online
 
@@ -99,6 +99,8 @@ function init_game() {
  
 function create_board() {
     const tileGeometry = new THREE.PlaneGeometry(1, 1);
+    const lightTile = new THREE.MeshBasicMaterial({color: lightTileColor});
+    const darkTile = new THREE.MeshBasicMaterial({color: darkTileColor});
     let tile;
     board = new THREE.Group();
 
@@ -107,14 +109,15 @@ function create_board() {
         
             if (z % 2 == false) {
                 tile = new THREE.Mesh(tileGeometry, x % 2 == false? lightTile: darkTile);
+                tile.name = x % 2 == false? 'lightTile' : 'darkTile';
             }
             else {
                 tile = new THREE.Mesh(tileGeometry, x % 2 == false? darkTile: lightTile);
+                tile.name = x % 2 == false? 'darkTile' : 'lightTile';
             }
             tile.userData.squareNumber = {x: x, z: z};
             tile.position.set(z, 0, x);
             tile.rotation.x = -90*(Math.PI/180);
-            tile.name = 'tile';
             board.add(tile);
         }
         
@@ -307,6 +310,9 @@ function highlight_tiles(tile) {
 
 // Set tiles back to original material
 function reset_tile_materials() {
+    const lightTile = new THREE.MeshBasicMaterial({color: lightTileColor});
+    const darkTile = new THREE.MeshBasicMaterial({color: darkTileColor});
+    
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
             const tile = board.children.find((child) => (child.userData.squareNumber.x === x) && (child.userData.squareNumber.z === z));
@@ -745,10 +751,12 @@ async function load_pieces() {
         const piece = pieceSkin.scene.children[0];
         if(piece.name.includes('white')) {
             piece.position.set(whiteCount, 0, 7);
+            piece.material = new THREE.MeshStandardMaterial({ color: whiteColor });
             whiteCount++;
         }
         else {
             piece.position.set(blackCount, 0, 0);
+            piece.material = new THREE.MeshStandardMaterial({ color: blackColor });
             blackCount++;
         }
         pieceSet.add(piece);
@@ -832,17 +840,49 @@ leftArrow.addEventListener('click', () => {
     load_pieces();
 });
 
-const colorPicker = document.getElementById("color");
-colorPicker.addEventListener('input', () => {
-    const color = colorPicker.value;
+const blackColorPicker = document.getElementById("blackColor");
+blackColorPicker.addEventListener('input', () => {
 
     for(let i = 0; i < pieceSet.children.length; i++) {
         if(pieceSet.children[i].name.includes('black')) {
-            pieceSet.children[i].material = new THREE.MeshStandardMaterial({ color: color });
+            pieceSet.children[i].material = new THREE.MeshStandardMaterial({ color: blackColorPicker.value });
         }
     }
 
-    blackColor = color;
+    blackColor = blackColorPicker.value;
+});
+
+const whiteColorPicker = document.getElementById("whiteColor");
+whiteColorPicker.addEventListener('input', () => {
+
+    for(let i = 0; i < pieceSet.children.length; i++) {
+        if(pieceSet.children[i].name.includes('white')) {
+            pieceSet.children[i].material = new THREE.MeshStandardMaterial({ color: whiteColorPicker.value });
+        }
+    }
+
+    whiteColor = whiteColorPicker.value;
+});
+
+const lightTilePicker = document.getElementById("lightTile");
+lightTilePicker.addEventListener('input', () => {
+    for(let i = 0; i < board.children.length; i++) {
+        if(board.children[i].name.includes('lightTile')) {
+            board.children[i].material = new THREE.MeshStandardMaterial({ color: lightTilePicker.value });
+        }
+    }
+
+    lightTileColor = lightTilePicker.value;
+});
+
+const darkTilePicker = document.getElementById("darkTile");
+darkTilePicker.addEventListener('input', () => {
+    for(let i = 0; i < board.children.length; i++) {
+        if(board.children[i].name.includes('darkTile')) {
+            board.children[i].material = new THREE.MeshStandardMaterial({ color: darkTilePicker.value });
+        }
+    }
+    darkTileColor = darkTilePicker.value;
 });
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
 

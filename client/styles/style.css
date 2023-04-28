@@ -781,9 +781,25 @@ body {
     animation: 1s fadeIn ease forwards .5s;
 }
 
-.customisationMenu #color {
-    z-index: 1;
+.colorPickers {
     position: absolute;
-    top: 0;
-    left: 0;
+    left: 0%;
+    top: 0%;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    grid-column-gap: 10px;
+}
+
+.colorGroup {
+    display: contents;
+}
+
+label {
+    grid-column: 2;
+    align-self: center;
+}
+  
+.customisationMenu input {
+    z-index: 1;
+    grid-column: 1;
 }
