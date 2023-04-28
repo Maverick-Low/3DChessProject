@@ -17,6 +17,7 @@ var socket = io(), currentRoom; // Global variables for online\
 var index = 0, 
 lightTileColor = 0xe3d8bd, darkTileColor = 0x77593e, // Tile colors
 whiteColor = 0xffe9d2, blackColor = 0x4e4e4e, // Piece colors
+moveHighlight = 0x5fd64e, attackHighlight = 0xf72626, // Board Highlight colours
 chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb'],
 chessSetNames = ['Normal Set', 'Ant vs Mantissas Set'];  
 
@@ -293,8 +294,8 @@ function reset_piece_materials() {
 
 // Highlight tiles that are a valid move
 function highlight_tiles(tile) {
-    const greenHighlight = new THREE.MeshBasicMaterial({color: 0x5fd64e});
-    const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
+    const greenHighlight = new THREE.MeshBasicMaterial({color: moveHighlight});
+    const redHighlight = new THREE.MeshBasicMaterial({color: attackHighlight});
 
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
@@ -334,7 +335,7 @@ function reset_tile_materials() {
 
 // Highlight the tile the king is on if the king is checked
 function highlight_kings_tile(){
-    const redHighlight = new THREE.MeshBasicMaterial({color: 0xf72626});
+    const redHighlight = new THREE.MeshBasicMaterial({color: attackHighlight});
     const kings = game.get_king_positions();
     const whitePlayer = game.players[0].isWhite? game.players[0] : game.players[1];
     const kingInCheck = game.currentTurn === whitePlayer? kings[0] : kings[1];
@@ -804,6 +805,10 @@ customise.addEventListener('click', () => {
 const exitCustomise = document.getElementById("quitCust");
 exitCustomise.addEventListener('click', () => {
 
+    // Make sure board is only 2 colors
+    board.children[36].material = new THREE.MeshBasicMaterial({ color: lightTileColor });
+    board.children[35].material = new THREE.MeshBasicMaterial({ color: darkTileColor });
+
     // Remove pieces from board
     scene.remove(pieceSet);
     
@@ -893,6 +898,18 @@ darkTilePicker.addEventListener('input', () => {
         }
     }
     darkTileColor = darkTilePicker.value;
+});
+
+const attackHighlightPicker = document.getElementById("attackHighlight");
+attackHighlightPicker.addEventListener('input', () => {
+    board.children[35].material = new THREE.MeshStandardMaterial({ color: attackHighlightPicker.value })
+    attackHighlight = attackHighlightPicker.value;
+});
+
+const moveHighlightPicker = document.getElementById("moveHighlight");
+moveHighlightPicker.addEventListener('input', () => {
+    board.children[36].material = new THREE.MeshStandardMaterial({ color: moveHighlightPicker.value })
+    attackHighlight = moveHighlightPicker.value;
 });
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
 
