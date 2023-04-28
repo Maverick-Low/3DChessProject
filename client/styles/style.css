@@ -717,12 +717,12 @@ body {
     color: #fff;
 }
 
-.skinName {
+#skinName {
     display: flex;
     position: relative;
     top: 20%;
     font-size: 20px;
-    content: "Name 1";
+    content: "OH BROTHER";
 }
 
 .arrow {

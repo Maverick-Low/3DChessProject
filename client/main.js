@@ -10,10 +10,16 @@ import { Player } from './ChessEngine/Player.js';
 var scene, camera, renderer, controls, container, mouse, raycaster, loader, chessMesh;  // Global ThreeJS variables
 var board, game, players = new Array(2);                                                // Global game variables
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variables for pieces
-var index = 0, chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb']; // Global variables for Customisation
-var lightTileColor = 0xe3d8bd, darkTileColor = 0x77593e; // Tile colors
-var whiteColor = 0xffe9d2, blackColor = 0x4e4e4e; // Piece colors
-var socket = io(), currentRoom; // Global variables for online
+
+var socket = io(), currentRoom; // Global variables for online\
+
+// Variables for customisation
+var index = 0, 
+lightTileColor = 0xe3d8bd, darkTileColor = 0x77593e, // Tile colors
+whiteColor = 0xffe9d2, blackColor = 0x4e4e4e, // Piece colors
+chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb'],
+chessSetNames = ['Normal Set', 'Ant vs Mantissas Set'];  
+
 
 async function init() {
     // Scene
@@ -312,7 +318,7 @@ function highlight_tiles(tile) {
 function reset_tile_materials() {
     const lightTile = new THREE.MeshBasicMaterial({color: lightTileColor});
     const darkTile = new THREE.MeshBasicMaterial({color: darkTileColor});
-    
+
     for(let x = 0; x < 8; x++) {
         for(let z = 0; z < 8; z++) {
             const tile = board.children.find((child) => (child.userData.squareNumber.x === x) && (child.userData.squareNumber.z === z));
@@ -828,15 +834,19 @@ exitCustomise.addEventListener('click', () => {
 
 const rightArrow = document.getElementById("rightArrow");
 rightArrow.addEventListener('click', () => {
+    const skinName = document.getElementById("skinName");
     scene.remove(pieceSet);
     index = index >= chessSets.length -1? 0 : index+1;
+    skinName.textContent = chessSetNames[index];
     load_pieces();
 });
 
 const leftArrow = document.getElementById("leftArrow");
 leftArrow.addEventListener('click', () => {
+    const skinName = document.getElementById("skinName");
     scene.remove(pieceSet);
     index = index <= 0? chessSets.length - 1: index - 1;
+    skinName.textContent = chessSetNames[index];
     load_pieces();
 });
 
