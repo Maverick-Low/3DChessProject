@@ -11,9 +11,9 @@ var scene, camera, renderer, controls, container, mouse, raycaster, loader, ches
 var board, game, players = new Array(2);                                                // Global game variables
 var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variables for pieces
 var index = 0, chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb']; // Global variables for Customisation
-var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
-var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
-var socket = io();
+var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd}), darkTile = new THREE.MeshBasicMaterial({color: 0x77593e}); // Tile colors
+var whiteColor = 0xffe9d2, blackColor = 0x4e4e4e; // Piece colors
+var socket = io(), currentRoom; // Global variables for online
 
 async function init() {
     // Scene
@@ -151,10 +151,10 @@ function customise_piece(pos, piece, currentTile) {
     let material;
 
     if(piece.name.includes('black')) {
-        material = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+        material = new THREE.MeshStandardMaterial({ color: blackColor });
     }
     else {
-        material = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+        material = new THREE.MeshStandardMaterial({ color: whiteColor });
     }
     piece.userData.currentSquare = {x: currentTile.x, z: currentTile.z};
     piece.userData.posX = currentTile.x
@@ -252,13 +252,13 @@ function highlight_piece(){
         if(intersects.length > 0 && (isBlack || isWhite)) {
             const object = intersects[lengthToPiece].object;
             if(isWhite && game.currentTurn.isWhite && players[0].isWhite) {
-                const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xffe9d2 });
+                const lightMaterial = new THREE.MeshStandardMaterial({ color: whiteColor });
                 object.material = lightMaterial;
                 object.material.transparent = true;
                 object.material.opacity = 0.5;  
             }
             else if(isBlack && !game.currentTurn.isWhite && !players[0].isWhite){
-                const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x4e4e4e });
+                const darkMaterial = new THREE.MeshStandardMaterial({ color: blackColor });
                 object.material =  darkMaterial;
                 object.material.transparent = true;
                 object.material.opacity = 0.5;
@@ -602,7 +602,6 @@ function test(event) {
 }
 
 // --------------------------------------------- Functions for handing lobbies ----------------------------------------------------- //
-var currentRoom;
 
 function create_room(){
     players[0] = new Player(true);
@@ -733,11 +732,11 @@ startLobby.addEventListener('click', () => {
 
 
 // --------------------------------------------- Customisation ----------------------------------------------------- //
-const loaderX = new GLTFLoader();
-const pieceSkins = await loaderX.loadAsync(chessSets[0]);
 const pieceSet = new THREE.Group();
 
-function load_pieces(pieceSkin) {
+async function load_pieces() {
+    const loaderX = new GLTFLoader();
+    const pieceSkin = await loaderX.loadAsync(chessSets[index]);
     pieceSet.clear();
     let whiteCount = 1;
     let blackCount = 1;
@@ -759,7 +758,7 @@ function load_pieces(pieceSkin) {
 }
 
 const customise = document.getElementById("customise");
-customise.addEventListener('click', async function() {
+customise.addEventListener('click', () => {
 
     // Pan camera over to board
     gsap.to(camera.position, {
@@ -782,14 +781,14 @@ customise.addEventListener('click', async function() {
             controls.enablePan = false;
             controls.enableDamping = true;
             controls.enabled = true;
-            load_pieces(pieceSkins);
+            load_pieces();
         }
     });
 
 });
 
 const exitCustomise = document.getElementById("quitCust");
-exitCustomise.addEventListener('click', async function() {
+exitCustomise.addEventListener('click', () => {
 
     // Remove pieces from board
     scene.remove(pieceSet);
@@ -820,25 +819,30 @@ exitCustomise.addEventListener('click', async function() {
 });
 
 const rightArrow = document.getElementById("rightArrow");
-rightArrow.addEventListener('click', async function() {
+rightArrow.addEventListener('click', () => {
     scene.remove(pieceSet);
     index = index >= chessSets.length -1? 0 : index+1;
-    const pieceSkin = await loaderX.loadAsync(chessSets[index]);
-    load_pieces(pieceSkin);
+    load_pieces();
 });
 
 const leftArrow = document.getElementById("leftArrow");
-leftArrow.addEventListener('click', async function() {
+leftArrow.addEventListener('click', () => {
     scene.remove(pieceSet);
     index = index <= 0? chessSets.length - 1: index - 1;
-    const pieceSkin = await loaderX.loadAsync(chessSets[index]);
-    load_pieces(pieceSkin);
+    load_pieces();
 });
 
 const colorPicker = document.getElementById("color");
 colorPicker.addEventListener('input', () => {
     const color = colorPicker.value;
-    scene.background = new THREE.Color(color);
+
+    for(let i = 0; i < pieceSet.children.length; i++) {
+        if(pieceSet.children[i].name.includes('black')) {
+            pieceSet.children[i].material = new THREE.MeshStandardMaterial({ color: color });
+        }
+    }
+
+    blackColor = color;
 });
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
 
