@@ -780,3 +780,10 @@ body {
     opacity: 0; 
     animation: 1s fadeIn ease forwards .5s;
 }
+
+.customisationMenu #color {
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+}

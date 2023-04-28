@@ -9,12 +9,11 @@ import { Player } from './ChessEngine/Player.js';
 
 var scene, camera, renderer, controls, container, mouse, raycaster, loader, chessMesh;  // Global ThreeJS variables
 var board, game, players = new Array(2);                                                // Global game variables
-var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variales for pieces
-var fileName = 'client/assets/NormalChessSet.glb';
+var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variables for pieces
+var index = 0, chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb']; // Global variables for Customisation
 var lightTile = new THREE.MeshBasicMaterial({color: 0xe3d8bd});
 var darkTile = new THREE.MeshBasicMaterial({color: 0x77593e});
 var socket = io();
-var chessSets = ['client/assets/NormalChessSet.glb', 'client/assets/AntChessSet.glb'];
 
 async function init() {
     // Scene
@@ -171,7 +170,7 @@ function customise_piece(pos, piece, currentTile) {
 async function fill_board() {
     
     loader = new GLTFLoader();
-    chessMesh = await loader.loadAsync(fileName);
+    chessMesh = await loader.loadAsync(chessSets[index]);
     const mesh = chessMesh.scene;
     let piece, pieceName;
 
@@ -505,7 +504,6 @@ function castle_king(move) {
 function promote_pawn(selectedPiece, move) {
     const pieceColor = selectedPiece.name.includes('white')? 'white' : 'black';
     const choosingPlayer = (pieceColor === 'white' && players[0].isWhite) || (pieceColor === 'black' && !players[0].isWhite);
-    
 
     if(choosingPlayer) {
         const color = players[0].isWhite? 'white' : 'black';
@@ -735,7 +733,6 @@ startLobby.addEventListener('click', () => {
 
 
 // --------------------------------------------- Customisation ----------------------------------------------------- //
-let index = 0;  
 const loaderX = new GLTFLoader();
 const pieceSkins = await loaderX.loadAsync(chessSets[0]);
 const pieceSet = new THREE.Group();
@@ -793,12 +790,18 @@ customise.addEventListener('click', async function() {
 
 const exitCustomise = document.getElementById("quitCust");
 exitCustomise.addEventListener('click', async function() {
+
+    // Remove pieces from board
+    scene.remove(pieceSet);
     
-    // Return to Main Menu
+    // Make Customisation menu invisible
     const custMenu = document.getElementById("customisationMenu");
-    custMenu.style.display = 'none'; // Make Custom menu invisible
+    custMenu.style.display = 'none';
+
+    // Disable controls
     controls.enabled = false;
     controls.maxDistance = 1000;
+
     // Pan camera over to board
     gsap.to(camera.position, {
         x: -100,
@@ -832,6 +835,11 @@ leftArrow.addEventListener('click', async function() {
     load_pieces(pieceSkin);
 });
 
+const colorPicker = document.getElementById("color");
+colorPicker.addEventListener('input', () => {
+    const color = colorPicker.value;
+    scene.background = new THREE.Color(color);
+});
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
 
 
