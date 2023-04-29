@@ -55,6 +55,14 @@ export class Game {
         return pieceSet;
     }
 
+    clear_board() {
+        for(let x = 0; x < 8; x++) {
+            for(let z = 0; z < 8; z++) {
+                this.board[x][z] = null;
+            }
+        }
+    }
+
     // --------------------------------------------- Functions for updating the game  ----------------------------------------------------- //
 
     move_piece(move) {

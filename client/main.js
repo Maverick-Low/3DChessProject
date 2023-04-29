@@ -9,7 +9,7 @@ import { Player } from './ChessEngine/Player.js';
 
 var scene, camera, renderer, controls, container, mouse, raycaster, loader, chessMesh;  // Global ThreeJS variables
 var board, game, players = new Array(2);                                                // Global game variables
-var lengthToPiece, blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true;  // Global variables for pieces
+var blackTaken = 0, whiteTaken = 0, selected = null, whitesTurn = true, piecesOnBoard = new THREE.Group();;  // Global variables for pieces
 
 var socket = io(), currentRoom; // Global variables for online\
 
@@ -157,6 +157,7 @@ function resize_window(container, camera, renderer) {
 }
 
 // --------------------------------------------- Functions for loading pieces onto the board  ----------------------------------------------------- //
+
 function customise_piece(pos, piece, currentTile) {
     let material;
 
@@ -173,9 +174,10 @@ function customise_piece(pos, piece, currentTile) {
 
     piece.material = material;
     piece.position.set(pos.x, pos.y, pos.z);
-    scene.add(piece);
-   
+    piecesOnBoard.add(piece);
+
 }
+
 
 async function fill_board() {
     
@@ -222,11 +224,11 @@ async function fill_board() {
                 pieceName = x === 1? 'blackPawn' : 'whitePawn'
                 piece = mesh.children.find((child) => child.name === pieceName).clone(true);
                 customise_piece(tilePos, piece, {x,z});
-            }
-
-           
+            }           
         }
     }
+
+    scene.add(piecesOnBoard);
 }
 
 function find_tile_position(tile) {;
@@ -242,25 +244,16 @@ function find_tile_position(tile) {;
 // Hovering over pieces highlights them
 function highlight_piece(){ 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children);
+    const intersects = raycaster.intersectObjects(piecesOnBoard.children);
     let isWhite, isBlack;
 
     // Highlight the first object that is a chess piece
     if(!selected) {
-        for(let i = 0; i < intersects.length; i++) {
-            if (intersects[i].object.name.includes('white') || intersects[i].object.name.includes('black')) {
-                isWhite = intersects[lengthToPiece]? intersects[lengthToPiece].object.name.includes('white'): false;
-                isBlack = intersects[lengthToPiece]? intersects[lengthToPiece].object.name.includes('black'): false;
-                lengthToPiece = i;
-                break;
-            }
-            else {
-                lengthToPiece = 0;
-            }
-        }
+        isWhite = intersects[0]? intersects[0].object.name.includes('white'): false;
+        isBlack = intersects[0]? intersects[0].object.name.includes('black'): false;
         
         if(intersects.length > 0 && (isBlack || isWhite)) {
-            const object = intersects[lengthToPiece].object;
+            const object = intersects[0].object;
             if(isWhite && game.currentTurn.isWhite && players[0].isWhite) {
                 const lightMaterial = new THREE.MeshStandardMaterial({ color: whiteColor });
                 object.material = lightMaterial;
@@ -281,8 +274,8 @@ function highlight_piece(){
 
 // Once mouse cursor is no longer hovering on a piece, set it back to its original colours
 function reset_piece_materials() {
-    for (let i = 0; i < scene.children.length; i++) {
-        const object = scene.children[i];
+    for (let i = 0; i < piecesOnBoard.children.length; i++) {
+        const object = piecesOnBoard.children[i];
         if(object.material) {
             object.material.opacity = object.userData.currentSquare === selected ? 0.5 : 1.0;
             if (object.userData.taken === true) {
@@ -336,19 +329,20 @@ function reset_tile_materials() {
 // Highlight the tile the king is on if the king is checked
 function highlight_kings_tile(){
     const redHighlight = new THREE.MeshBasicMaterial({color: attackHighlight});
-    const kings = game.get_king_positions();
-    const whitePlayer = game.players[0].isWhite? game.players[0] : game.players[1];
-    const kingInCheck = game.currentTurn === whitePlayer? kings[0] : kings[1];
+    const kings = game? game.get_king_positions() : null;
+    if(kings) {
+        const whitePlayer = game.players[0].isWhite? game.players[0] : game.players[1];
+        const kingInCheck = game.currentTurn === whitePlayer? kings[0] : kings[1];
 
-    const kingIsChecked = game.king_is_checked();
-    const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
+        const kingIsChecked = game.king_is_checked();
+        const tile3D = board.children.find((child) => (child.userData.squareNumber.x === kingInCheck.position.x) && (child.userData.squareNumber.z === kingInCheck.position.y));
 
-    if(kingIsChecked) {
-        tile3D.material = redHighlight;
-        tile3D.material.transparent = true;
-        tile3D.opacity = 0.5;
+        if(kingIsChecked) {
+            tile3D.material = redHighlight;
+            tile3D.material.transparent = true;
+            tile3D.opacity = 0.5;
+        }
     }
- 
 }
 
 // --------------------------------------------- Functions for moving pieces ----------------------------------------------------- //
@@ -363,13 +357,14 @@ function move_mouse( event ) {
 // Function to: on first click: select a piece | on second click: Move piece to location
 function select_piece() {
     raycaster.setFromCamera(mouse, camera);
-    let intersects = raycaster.intersectObjects(scene.children);
+    let intersects = raycaster.intersectObjects(piecesOnBoard.children);
     // Get the selected piece
     if(!selected && intersects.length > 0) {
         whitesTurn = game.currentTurn === players.find(player => player.isWhite === true);
-        selected = intersects[lengthToPiece].object.userData.currentSquare;
-        let selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
-
+        selected = intersects[0].object.userData.currentSquare;
+        console.log(selected);
+        let selectedPiece = piecesOnBoard.children.find((child) => child.userData.currentSquare === selected);
+        
         // // Alternates moves for local play
         // if ((whitesTurn && !selectedPiece.name.includes('white')) ||  (!whitesTurn && !selectedPiece.name.includes('black')) ){
         //     selected = null;
@@ -391,14 +386,18 @@ function select_piece() {
     }
 
     // If selected, player can move the piece
-    if(selected && intersects.length > 0) {
+    if(selected) {
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
+        console.log(intersects[0].object);
 
         // Move in 3D
-        const selectedPiece = scene.children.find((child) => child.userData.currentSquare === selected);
+        const selectedPiece = piecesOnBoard.children.find((child) => child.userData.currentSquare === selected);
         const oldPos = selectedPiece.userData.currentSquare; 
         const newPos = intersects[0].object.userData.squareNumber; 
+        console.log('selectedPiece', selectedPiece);
+        console.log('newPos', newPos);
+
         
         // Move in 2D
         const startPos = game.board[oldPos.x][oldPos.z];
@@ -433,6 +432,7 @@ function move_piece3D(piece3D, move) {
     // Move piece in 3D
     take_piece(move.endPos);
     piece3D.position.set(endPos.y, 0, endPos.x);
+    console.log('endPos',endPos);
     piece3D.userData.currentSquare = {x: endPos.x, z: endPos.y};
     piece3D.userData.posX = endPos.x;
     piece3D.userData.posZ = endPos.y;
@@ -462,7 +462,7 @@ function move_piece3D(piece3D, move) {
 
 // Removes a piece from the board if the piece is taken
 function take_piece(tile) {
-    const piece3D = scene.children.find((child) => (child.userData.posX === tile.position.x) && (child.userData.posZ === tile.position.y));
+    const piece3D = piecesOnBoard.children.find((child) => (child.userData.posX === tile.position.x) && (child.userData.posZ === tile.position.y));
 
     if(tile.piece && tile.piece.color === 'black') {
         piece3D.position.set(-2,0,blackTaken);
@@ -493,7 +493,7 @@ function castle_king(move) {
     const rookTile = game.get_rook(move);
     const rookCoOrds = {x: rookTile.position.y, z: rookTile.position.x};
     const rookPos = find_tile_position(rookCoOrds);
-    const rook3D = scene.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
+    const rook3D = piecesOnBoard.children.find((child) => (child.userData.posX === rookPos.x) && (child.userData.posZ === rookPos.z));
     
     // Set the corresponding castle position for the rook
     const isRookWhite = rookTile.piece.color === 'white';
@@ -588,33 +588,6 @@ function promote_pawn(selectedPiece, move) {
         });
     }
     
-}
-
-// --------------------------------------------- Functions for printing ----------------------------------------------------- //
-
-function print_board(event) {
-    var key = event.which || event.keyCode
-    if (key === 32) {
-        // console.log('currentTurn:   ', game.currentTurn);
-        // const kings = game.get_king_positions();
-        // const kingTile = game.currentTurn === players[0]? kings[0] : kings[1];
-        // console.log('Only looking at King:   ', kingTile.piece);
-
-        // // const whitesKing = game.currentTurn === players.find(player => player.isWhite === true)
-        // const whitesKing = players.find(player => player.isWhite === true);
-        
-        // const x = game.currentTurn === whitesKing? kings[0] : kings[1];
-        // console.log('Should be looking at King:', x.piece);
-        console.log('Checkmate:', game.king_is_checkmated());
-        console.log(game.board);
-    }   
-}
-
-function test(event) {
-    var key = event.which || event.keyCode
-    if(key === 80) {
-        socket.emit('test');
-    }
 }
 
 // --------------------------------------------- Functions for handing lobbies ----------------------------------------------------- //
@@ -750,10 +723,20 @@ startLobby.addEventListener('click', () => {
 
 const leaveGame = document.getElementById("leaveGame");
 leaveGame.addEventListener('click', () => {
+
+    // Leave room
+    socket.emit('leaveRoom', currentRoom);
+
+    // Hide Checkmate menu
     const checkmateMenu = document.getElementById("checkmateMenu");
     checkmateMenu.style.display = 'none';
 
-    // Remove pieces from board
+    // Reset game
+    scene.remove(piecesOnBoard);
+    piecesOnBoard.clear();
+    game.clear_board();
+    game = null;
+    reset_tile_materials();
 
     // Disable controls
     controls.enabled = false;
@@ -958,7 +941,7 @@ socket.on('fetchRooms', function(allRooms) {
 socket.on('receivedMove', function(data) {
     const startPos = {x: data.move.startPos.position.x, y: data.move.startPos.position.y}; 
     const endPos = {x: data.move.endPos.position.x, y: data.move.endPos.position.y}; 
-    const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
+    const piece3D = piecesOnBoard.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
     const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
     move_piece3D(piece3D, move);
 
@@ -1001,6 +984,23 @@ socket.on('colorChanged', function() {
 socket.on('startGame',function() {
     init_game();
 })
+
+
+// --------------------------------------------- Functions for printing ----------------------------------------------------- //
+
+function print_board(event) {
+    var key = event.which || event.keyCode
+    if (key === 32) {
+        console.log('a');
+    }   
+}
+
+function test(event) {
+    var key = event.which || event.keyCode
+    if(key === 80) {
+        console.log('a');
+    }
+}
 
 window.addEventListener('keydown', print_board);
 window.addEventListener('keydown', test);
