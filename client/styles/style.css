@@ -722,7 +722,6 @@ body {
     position: relative;
     top: 20%;
     font-size: 20px;
-    content: "OH BROTHER";
 }
 
 .arrow {
@@ -802,4 +801,73 @@ label {
 .customisationMenu input {
     z-index: 1;
     grid-column: 1;
+}
+
+/* --------------------------------------------- CSS for Checkmate Menu ----------------------------------------------------- */
+
+.checkmateMenu {
+    display: none;
+    z-index: 0;
+    box-shadow: 0px 6px 8px rgba(19, 19, 19, .7);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkmateMenu .content {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 50%;
+    height: 50%;
+    color: #fff;
+    background-color: #19191943;
+    animation: 1s grow ease forwards;
+    text-align: center;
+    overflow: auto;
+}
+
+
+.checkmateMenu p {
+    padding: 50px;
+    opacity: 0;
+    animation: 1s fadeIn ease forwards 1s;
+}
+
+.checkmateMenu h2 {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 20px;
+    justify-content: center;
+    color: #fff;
+}
+
+.checkmateMenu .close::after {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 40%;
+    height: 20%;
+    position: absolute;
+    display: flex;
+    z-index: 1;
+    font-size: 30px;
+    align-items: center;
+    justify-content: center;
+    background-color: #BF2E97;
+    color: #fff;
+    content: "Return to Menu";
+    cursor: pointer;
+    opacity: 0; 
+    animation: 1s fadeIn ease forwards .5s;
 }

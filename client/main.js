@@ -413,7 +413,10 @@ function select_piece() {
             selected = null;    
         }
         
-        console.log('Checkmate:', game.king_is_checkmated());
+        if(game.king_is_checkmated()) {
+            const checkmateMenu = document.getElementById("checkmateMenu");
+            checkmateMenu.style.display = 'flex';
+        }
 
     }
 }
@@ -743,6 +746,36 @@ startLobby.addEventListener('click', () => {
     socket.emit('isHost'); // Check if the player that click start is the host
 });
 
+// --------------------------------------------- Checkmate Menu ----------------------------------------------------- //
+
+const leaveGame = document.getElementById("leaveGame");
+leaveGame.addEventListener('click', () => {
+    const checkmateMenu = document.getElementById("checkmateMenu");
+    checkmateMenu.style.display = 'none';
+
+    // Remove pieces from board
+
+    // Disable controls
+    controls.enabled = false;
+    controls.maxDistance = 1000;
+
+    // Pan camera back to original view
+    gsap.to(camera.position, {
+        x: -100,
+        y: 60,
+        z: 100,
+        duration: 2,
+        onUpdate: function() {
+            
+        },
+        onComplete: function() {
+            const mainMenu = document.getElementById("menu");
+            mainMenu.style.display = 'flex'; // Make Main Menu visible
+        }
+    });
+
+});
+
 
 // --------------------------------------------- Customisation ----------------------------------------------------- //
 const pieceSet = new THREE.Group();
@@ -820,7 +853,7 @@ exitCustomise.addEventListener('click', () => {
     controls.enabled = false;
     controls.maxDistance = 1000;
 
-    // Pan camera over to board
+    // Pan camera back to original view
     gsap.to(camera.position, {
         x: -100,
         y: 60,
@@ -883,7 +916,7 @@ const lightTilePicker = document.getElementById("lightTile");
 lightTilePicker.addEventListener('input', () => {
     for(let i = 0; i < board.children.length; i++) {
         if(board.children[i].name.includes('lightTile')) {
-            board.children[i].material = new THREE.MeshStandardMaterial({ color: lightTilePicker.value });
+            board.children[i].material = new THREE.MeshBasicMaterial({ color: lightTilePicker.value });
         }
     }
 
@@ -894,7 +927,7 @@ const darkTilePicker = document.getElementById("darkTile");
 darkTilePicker.addEventListener('input', () => {
     for(let i = 0; i < board.children.length; i++) {
         if(board.children[i].name.includes('darkTile')) {
-            board.children[i].material = new THREE.MeshStandardMaterial({ color: darkTilePicker.value });
+            board.children[i].material = new THREE.MeshBasicMaterial({ color: darkTilePicker.value });
         }
     }
     darkTileColor = darkTilePicker.value;
@@ -902,13 +935,13 @@ darkTilePicker.addEventListener('input', () => {
 
 const attackHighlightPicker = document.getElementById("attackHighlight");
 attackHighlightPicker.addEventListener('input', () => {
-    board.children[35].material = new THREE.MeshStandardMaterial({ color: attackHighlightPicker.value })
+    board.children[35].material = new THREE.MeshBasicMaterial({ color: attackHighlightPicker.value })
     attackHighlight = attackHighlightPicker.value;
 });
 
 const moveHighlightPicker = document.getElementById("moveHighlight");
 moveHighlightPicker.addEventListener('input', () => {
-    board.children[36].material = new THREE.MeshStandardMaterial({ color: moveHighlightPicker.value })
+    board.children[36].material = new THREE.MeshBasicMaterial({ color: moveHighlightPicker.value })
     attackHighlight = moveHighlightPicker.value;
 });
 // --------------------------------------------- Receiving messages from Server ----------------------------------------------------- //
@@ -928,6 +961,13 @@ socket.on('receivedMove', function(data) {
     const piece3D = scene.children.find((child) => (child.userData.posX === startPos.x) && (child.userData.posZ === startPos.y));
     const move = new Move(game.currentTurn, game.board[startPos.x][startPos.y], game.board[endPos.x][endPos.y]);
     move_piece3D(piece3D, move);
+
+    if(game.king_is_checkmated()) {
+        const checkmateMenu = document.getElementById("checkmateMenu");
+        checkmateMenu.style.display = 'flex';
+        const menuMessage = document.querySelector("#checkmateMenu h2");
+        menuMessage.textContent = "You Lose!";
+    }
 });
 
 // Swap player's color 
