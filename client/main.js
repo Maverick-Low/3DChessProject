@@ -591,9 +591,14 @@ function promote_pawn(selectedPiece, move) {
 }
 
 function en_passant() {
-    const lastPieceMovedPos = game.movesList[game.movesList.length - 1].endPos.position;
-    const attackedPawn = piecesOnBoard.children.find((child) => (child.userData.posX === lastPieceMovedPos.x) && (child.userData.posZ === lastPieceMovedPos.y));
-    take_piece(game.movesList[game.movesList.length - 1].endPos);
+    const lastMove = game.movesList[game.movesList.length - 1];
+    take_piece(lastMove.endPos); // Remove piece from board
+
+    // Update pieceset
+    const set = lastMove.endPos.piece.color === 'white'? game.whitePieceSet: game.blackPieceSet;
+    const pieceTaken = set.find(Tile => Tile.piece === lastMove.endPos.piece);
+    const setIndex = set.indexOf(pieceTaken);
+    set.splice(setIndex, 1);
 }
 // --------------------------------------------- Functions for handing lobbies ----------------------------------------------------- //
 
@@ -735,6 +740,10 @@ leaveGame.addEventListener('click', () => {
     // Hide Checkmate menu
     const checkmateMenu = document.getElementById("checkmateMenu");
     checkmateMenu.style.display = 'none';
+
+    // Remove Room number from lobby menu
+    const roomHTML = document.getElementById('roomNumber');
+    roomHTML.remove();
 
     // Reset game
     scene.remove(piecesOnBoard);
@@ -1003,7 +1012,7 @@ function print_board(event) {
 function test(event) {
     var key = event.which || event.keyCode
     if(key === 80) {
-        console.log('a');
+        console.log(game.blackPieceSet);
     }
 }
 
