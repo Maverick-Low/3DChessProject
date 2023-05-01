@@ -219,8 +219,9 @@ export class Game {
         }
         
         const canKingCastle = this.can_king_castle(move);
+        const canEnPassant = this.can_en_passant(move);
 
-       return (isEmpty || isSameColor == false) && (canMove || canKingCastle) && !isBlocked && correctTurn;
+       return (isEmpty || isSameColor == false) && (canMove || canKingCastle || canEnPassant) && !isBlocked && correctTurn;
     }
     
     is_legal_move(move){
@@ -280,8 +281,8 @@ export class Game {
         return false;
     }
 
-    // Deals with actual castling
-    can_castle(move) {
+    // Returns true if a Castling move has been played
+    perform_castle(move) {
         if (move.startPos.piece instanceof(King)) {
     
             const king = move.startPos.piece;
@@ -340,6 +341,51 @@ export class Game {
         
     }
 
+    // Returns true if En Passant has been played
+    perform_en_passant(move) {
+        const lastMove = this.movesList[0]?  this.movesList[this.movesList.length - 1]: null; 
+
+        if(move.startPos.piece instanceof(Pawn) && lastMove) {
+            const isPawnMoved = lastMove.pieceMoved instanceof(Pawn);
+            const moveOneVertically = Math.abs(move.endPos.position.x - move.startPos.position.x) === 1;
+            const moveOneHorizontally = Math.abs(move.endPos.position.y - move.startPos.position.y) === 1;
+            const moveOneDiagonal = moveOneHorizontally && moveOneVertically;
+           
+            return (isPawnMoved && moveOneDiagonal);
+        }
+    }
+
+    // Checks to see if Pawn can En Passant
+    can_en_passant(move) {
+        let lastPieceMovedIsPawn = false;
+        let lastPieceMovedTwoFromStart = false;
+
+        if(this.movesList[0]) {
+            const lastMove = this.movesList[this.movesList.length - 1]; 
+            lastPieceMovedIsPawn = lastMove.pieceMoved instanceof(Pawn);
+            lastPieceMovedTwoFromStart = Math.abs(lastMove.endPos.position.x - lastMove.startPos.position.x) === 2;
+        }
+
+        if(move.pieceMoved instanceof (Pawn)) {
+            if(move.startPos.position.x === 3 && move.pieceMoved.color === 'white' && lastPieceMovedTwoFromStart && lastPieceMovedIsPawn) {
+
+                const victimIsLHS = this.movesList[this.movesList.length - 1].startPos.position.y < move.startPos.position.y;
+                const moveSideOne = victimIsLHS? move.startPos.position.y - move.endPos.position.y === 1 : move.endPos.position.y - move.startPos.position.y === 1;
+                const moveUpOne = move.startPos.position.x - move.endPos.position.x === 1;
+                
+                return moveUpOne && moveSideOne;
+            }
+
+            else if(move.startPos.position.x === 4 && move.pieceMoved.color === 'black' && lastPieceMovedTwoFromStart && lastPieceMovedIsPawn) {
+
+                const victimIsLHS = this.movesList[this.movesList.length - 1].startPos.position.y < move.startPos.position.y;
+                const moveSideOne = victimIsLHS? move.startPos.position.y - move.endPos.position.y === 1 : move.endPos.position.y - move.startPos.position.y === 1;
+                const moveUpOne = move.endPos.position.x - move.startPos.position.x === 1;
+                
+                return moveUpOne && moveSideOne;
+            }
+        }
+    }
     // --------------------------------------------- Functions for checking / checkmating  ----------------------------------------------------- //
 
     king_is_checked() { 

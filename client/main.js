@@ -298,7 +298,7 @@ function highlight_tiles(tile) {
             const move = new Move(game.currentTurn, tile, newPos);
             
             if(game.is_legal_move(move)) {
-                const highlight = newPos.piece? redHighlight: greenHighlight;
+                const highlight = newPos.piece || game.can_en_passant(move)? redHighlight: greenHighlight;
                 tile3D.material = highlight;
                 tile3D.material.transparent = true;
                 tile3D.material.opacity = 0.5;
@@ -362,7 +362,6 @@ function select_piece() {
     if(!selected && intersects.length > 0) {
         whitesTurn = game.currentTurn === players.find(player => player.isWhite === true);
         selected = intersects[0].object.userData.currentSquare;
-        console.log(selected);
         let selectedPiece = piecesOnBoard.children.find((child) => child.userData.currentSquare === selected);
         
         // // Alternates moves for local play
@@ -389,16 +388,12 @@ function select_piece() {
     if(selected) {
         raycaster.setFromCamera(mouse, camera);
         intersects = raycaster.intersectObjects(board.children);
-        console.log(intersects[0].object);
 
         // Move in 3D
         const selectedPiece = piecesOnBoard.children.find((child) => child.userData.currentSquare === selected);
         const oldPos = selectedPiece.userData.currentSquare; 
         const newPos = intersects[0].object.userData.squareNumber; 
-        console.log('selectedPiece', selectedPiece);
-        console.log('newPos', newPos);
 
-        
         // Move in 2D
         const startPos = game.board[oldPos.x][oldPos.z];
         const endPos = game.board[newPos.x][newPos.z];
@@ -432,14 +427,18 @@ function move_piece3D(piece3D, move) {
     // Move piece in 3D
     take_piece(move.endPos);
     piece3D.position.set(endPos.y, 0, endPos.x);
-    console.log('endPos',endPos);
     piece3D.userData.currentSquare = {x: endPos.x, z: endPos.y};
     piece3D.userData.posX = endPos.x;
     piece3D.userData.posZ = endPos.y;
 
     // If the move is a castle - move the corresponding Rook
-    if(game.can_castle(move)) {
+    if(game.perform_castle(move)) {
         castle_king(move);
+    }
+
+    // If the move is En Passant, take the corresponding Pawn
+    if(game.perform_en_passant(move)) {
+        en_passant();
     }
 
     // Check if King or Rook has moved
@@ -447,7 +446,8 @@ function move_piece3D(piece3D, move) {
         move.startPos.piece.canCastle = false;
     }
 
-    // Move piece in 2D
+    // Update 2D Game Engine
+    game.movesList.push(move);
     game.update_pieceSet(move);
     game.move_piece(move);
 
@@ -590,6 +590,11 @@ function promote_pawn(selectedPiece, move) {
     
 }
 
+function en_passant() {
+    const lastPieceMovedPos = game.movesList[game.movesList.length - 1].endPos.position;
+    const attackedPawn = piecesOnBoard.children.find((child) => (child.userData.posX === lastPieceMovedPos.x) && (child.userData.posZ === lastPieceMovedPos.y));
+    take_piece(game.movesList[game.movesList.length - 1].endPos);
+}
 // --------------------------------------------- Functions for handing lobbies ----------------------------------------------------- //
 
 function create_room(){
@@ -991,7 +996,7 @@ socket.on('startGame',function() {
 function print_board(event) {
     var key = event.which || event.keyCode
     if (key === 32) {
-        console.log('a');
+        console.log(game.movesList);
     }   
 }
 
