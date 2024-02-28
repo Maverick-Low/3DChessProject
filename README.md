@@ -16,17 +16,15 @@ A Multiplayer 3D Chess Game built with Vanilla JavaScript, ThreeJS and Socket.io
 ## 📚 What I Learnt
 I acquired valuable skills and insights that have contributed to my growth as this was the first project done with no technical guidance or enforced structure as University projects tend to have.
 ### **🕋 Working in 3D** 
-	I gained a deeper understanding of both the ThreeJS library and how to integrate 3D into my web projects
+- I gained a deeper understanding of both the ThreeJS library and how to integrate 3D into my web projects
 ### **🕹️ Complex Game Logic** 
-	Developing the rules-heavy game involved implementing and managing complex game logic, improving my problem-solving abilities.
+- Developing the rules-heavy game involved implementing and managing complex game logic, improving my problem-solving abilities.
 ### **🖥 Real-time Communication with Socket.io** 
-	I learned how to facilitate real-time communication between players as well as how to implement a lobby system on my server.
+- I learned how to facilitate real-time communication between players as well as how to implement a lobby system on my server.
 ### **🎨 3D Modelling with Blender**
-	I had to learn the basics of Blender in order to ensure all the pieces were consistent in size, centre-origin, name, etc. so 
- 	that the loading of the different pieces and piecesets would be consistent.
+- I had to learn the basics of Blender in order to ensure all the pieces were consistent in size, centre-origin, name, etc. so that the loading of the different pieces and piecesets would be consistent.
 ### **🧑🏻‍💻 Client-Specific Rendering**
-	I had to implement a way so that clients would only see their own customised Chess set as well as the colour/team (black or 
- 	white) they would be playing as. The host of the lobby was also shown different privileges.
+- I had to implement a way so that clients would only see their own customised Chess set as well as the colour/team (black or white) they would be playing as. The host of the lobby was also shown different privileges.
   
 ## 💭 How can it be improved? (To one day rival Chess.com)
 - **Optimisation** - The initial loading of the pieces is fine, but when customising and choosing different piecesets, the 3D models are constantly being deleted and reloaded. I'm sure there must be a more efficient way of this
